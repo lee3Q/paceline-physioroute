@@ -1,0 +1,11 @@
+{
+  "name": "run-or-miss-conditional-commute-gate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Candidate 5: Run-or-Miss — Conditional Multimodal Commute & Stale-Data Fail-Closed Gate (seed_f1602f353109 + seed_c04d407ebfaf)",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/server.test.js"
+  }
+}

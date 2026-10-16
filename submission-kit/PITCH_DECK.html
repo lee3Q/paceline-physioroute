@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pitch Deck — PhysioRoute: Run-or-Miss</title>
+  <style>
+    :root {
+      --bg: #060d18;
+      --card: #0f172a;
+      --border: #1e293b;
+      --accent: #10b981;
+      --accent2: #38bdf8;
+      --danger: #f43f5e;
+      --warn: #f59e0b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: radial-gradient(circle at top left, #064e3b, #060d18 65%);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 36px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    button {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid #334155;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover {
+      background: #334155;
+      border-color: var(--accent);
+    }
+    button.lang-btn {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent2);
+      color: #bae6fd;
+    }
+    .deck-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 56px;
+    }
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1220px;
+      height: 100%;
+      max-height: 690px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 42px 52px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .slide.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 2.55rem;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+    h2 {
+      font-size: 2.05rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    p.lead {
+      font-size: 1.16rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+      margin-bottom: 18px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 8px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 8px;
+    }
+    .box {
+      background: rgba(30, 41, 59, 0.55);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 22px;
+    }
+    .box h3 {
+      font-size: 1.12rem;
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+    .box p, .box li {
+      font-size: 0.95rem;
+      line-height: 1.52;
+      color: #cbd5e1;
+    }
+    .box ul { padding-left: 18px; }
+    .box li { margin-bottom: 8px; }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 36px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .ko { display: none; }
+    body.lang-ko .en { display: none; }
+    body.lang-ko .ko { display: block; }
+    .cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #059669, #0284c7);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .voice-banner {
+      background: linear-gradient(90deg, rgba(244, 63, 94, 0.2), rgba(245, 158, 11, 0.2));
+      border: 2px solid var(--danger);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="badge">CANDIDATE #5 · :8085</span>
+      <span>PhysioRoute: Run-or-Miss — Personal Commute Chief-of-Staff</span>
+    </div>
+    <div class="controls">
+      <a class="cta-btn" href="http://localhost:8085" target="_blank">🚀 Open Live App (:8085)</a>
+      <button class="lang-btn" onclick="toggleLang()">🌐 EN / 한국어</button>
+      <button onclick="prevSlide()">← Prev</button>
+      <span id="slide-indicator" style="font-weight:700; min-width:54px; text-align:center;">1 / 6</span>
+      <button onclick="nextSlide()">Next →</button>
+    </div>
+  </header>
+
+  <main class="deck-container">
+    <!-- SLIDE 1: TITLE & CHIEF-OF-STAFF FRAMING -->
+    <section class="slide active">
+      <div>
+        <div class="slide-kicker">Google DeepMind AI Hackathon · Gemini 4 Argon Showcase</div>
+        <h1 class="en">PhysioRoute: Run-or-Miss<br/>Your Personal Commute Chief-of-Staff</h1>
+        <h1 class="ko">PhysioRoute: Run-or-Miss<br/>내 유능한 부하가 브리핑하는 조건부 이동 & 실시간 보이스 코치</h1>
+        <p class="lead en">
+          Like asking your sharpest subordinate before a critical meeting: <em>"How do I get there?"</em>—delivering <strong>⚡ The Absolute Fastest Way</strong> and <strong>🛡️ The Safest Zero-Risk Way</strong> by fusing Strava physiology, 38 km/h downhill cycling, sidewalk construction/festivals, and <strong>🎧 Live Pace-Drop Voice Bailout</strong>.
+        </p>
+        <p class="lead ko">
+          중요한 일정을 앞두고 유능한 부하에게 <em>"야, 나 거기 어떻게 가?"</em>라고 물었을 때처럼 <strong>⚡ 가장 빨리 가는 법</strong>과 <strong>🛡️ 가장 안전하게 가는 법(P99 리스크 보장)</strong> 두 가지를 정확히 브리핑하고, 이동 중 페이스 저하 시 <strong>🎧 실시간 음성으로 택시 환승을 지시</strong>하는 시스템.
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="box">
+          <h3 class="en">⚡ Fastest vs 🛡️ Safest</h3>
+          <h3 class="ko">⚡ 최단 시간 vs 🛡️ 최고 안전</h3>
+          <p class="en">Fuses Strava running pace, 38 km/h downhill bike + lock, Ttareungi, road surface, sidewalk construction, and festival blockages.</p>
+          <p class="ko">내 Strava 러닝 기록, 시속 38km 자전거 다운힐, 따릉이, 노면 상태, 인도 공사, 거리 페스티벌 통제까지 전부 반영해 2개 루트를 딱 제시합니다.</p>
+        </div>
+        <div class="box">
+          <h3 class="en">🛑 61s Fail-Closed Gate</h3>
+          <h3 class="ko">🛑 61초 Stale Fail-Closed 차단</h3>
+          <p class="en">Refuses to command a 38 km/h downhill ride or sprint when live subway telemetry is &gt;60s stale.</p>
+          <p class="ko">열차 실시간 데이터가 60초를 초과해 낡았을 때 무모한 전력 질주/다운힐 지시를 즉시 차단(<code>HOLD</code>)합니다.</p>
+        </div>
+        <div class="box" style="border-color: var(--danger);">
+          <h3 style="color: var(--danger);" class="en">🎧 Live Voice Bailout</h3>
+          <h3 style="color: var(--danger);" class="ko">🎧 페이스 저하 실시간 음성 피드백</h3>
+          <p class="en">Detects mid-run pace drops in real time, declares the original train impossible, and speaks aloud: <em>"Switch to a taxi 80m ahead now!"</em></p>
+          <p class="ko">실시간 러닝 페이스가 떨어져 열차 탑승이 불가능해지는 순간, 즉시 음성으로 <em>"전방 80m에서 바로 택시로 갈아타라!"</em>고 지시합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: WHY NEITHER MAPS NOR STANDARD LLMS CAN DO THIS -->
+    <section class="slide">
+      <div>
+        <div class="slide-kicker">01 · Why Existing Tools Fail</div>
+        <h2 class="en">Why Neither Map Apps Nor Standard LLMs Can Do This</h2>
+        <h2 class="ko">왜 기존 지도 앱(네이버·카카오·구글)도, 일반 LLM도 불가능한가?</h2>
+        <p class="lead en">
+          Real-world commuting lives at the intersection of <strong>unstructured street friction</strong>, <strong>personal biomechanics</strong>, and <strong>stochastic transit math</strong>.
+        </p>
+        <p class="lead ko">
+          현실의 이동은 '비정형 거리 상황(공사·축제)', '개인의 신체 능력(Strava)', '지하철 지연 확률 분포'가 동시에 맞물려 돌아갑니다.
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="box" style="border-color: var(--danger);">
+          <h3 style="color: var(--danger);" class="en">❌ Map Apps (Google/Naver/Kakao)</h3>
+          <h3 style="color: var(--danger);" class="ko">❌ 기존 지도 앱의 한계</h3>
+          <ul class="en">
+            <li><strong>Blind to Unstructured Friction</strong>: Cannot factor in street festivals blocking sidewalks, sidewalk repaving zones, or wet road surfaces.</li>
+            <li><strong>Blind to Your Physiology</strong>: Assumes flat 4 km/h walking—ignores your Strava 4'30"/km run or 38 km/h downhill bike ride.</li>
+          </ul>
+          <ul class="ko">
+            <li><strong>비정형 거리 장벽 무시</strong>: 페스티벌로 인한 인도 통제, 보도블록 공사 구간, 노면 상태를 반영하지 못함.</li>
+            <li><strong>개인 신체 능력 무시</strong>: 무조건 시속 4km 도보만 가정하며 내 Strava 달리기 속도나 자전거 다운힐을 모름.</li>
+          </ul>
+        </div>
+        <div class="box" style="border-color: var(--warn);">
+          <h3 style="color: var(--warn);" class="en">❌ Standalone Standard LLMs</h3>
+          <h3 style="color: var(--warn);" class="ko">❌ 일반 단독 LLM의 한계</h3>
+          <ul class="en">
+            <li>Can read text notices about a festival or construction, but <strong>hallucinates transit timetables and P99 buffer math</strong>.</li>
+            <li>No deterministic telemetry freshness gate or live pace-drop physics loop.</li>
+          </ul>
+          <ul class="ko">
+            <li>공사/페스티벌 공지 텍스트는 읽을 수 있으나, <strong>다중 노선 환승 시간표와 P99 지연 분포를 정확히 계산하지 못함</strong>.</li>
+            <li>데이터 신선도 검증이나 실시간 페이스 저하 물리 연산 불가능.</li>
+          </ul>
+        </div>
+        <div class="box" style="border-color: var(--accent);">
+          <h3 class="en">✅ <code>gemini-4-argon</code> + Physics Engine</h3>
+          <h3 class="ko">✅ <code>gemini-4-argon</code> + 물리 엔진</h3>
+          <ul class="en">
+            <li>Ingests unstructured festival/sidewalk alerts + 1-click Strava profile + live subway feeds in one context.</li>
+            <li>Computes exact <strong>⚡ Fastest</strong> vs <strong>🛡️ Safest (P99)</strong> briefings with deterministic safety gates.</li>
+          </ul>
+          <ul class="ko">
+            <li>비정형 공사/축제 공지 + Strava 생체 데이터 + 실시간 열차 피드를 단일 컨텍스트로 통합.</li>
+            <li><strong>⚡ 가장 빠른 길</strong>과 <strong>🛡️ 가장 안전한 길</strong> 두 개를 완벽하게 브리핑!</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: STEEP-HILL PHYSICS & ROUTE INVERSION -->
+    <section class="slide">
+      <div>
+        <div class="slide-kicker">02 · Conditional Last-Mile & Corridor Inversion</div>
+        <h2 class="en">15-Min Walk vs. 5-Min Strava Run vs. 5-Min Bike (38 km/h)</h2>
+        <h2 class="ko">급경사 3-모드 물리학 & <code>6→3→2</code> vs <code>6→2</code> 노선 역전</h2>
+        <p class="lead en">
+          Descending the steep hill to Line 6 by Run or 38 km/h Bike cuts access from 15m → 5m, catching the 08:18 train. When Line 3 crowds spike, the engine flips from `6→3→2` (Fastest) to `6→2` (Safest P99).
+        </p>
+        <p class="lead ko">
+          언덕을 러닝(5분)이나 시속 38km 자전거 다운힐+거치(5분)로 내려가면 08:18 앞 열차를 잡아타며, 3호선 환승 혼잡 시 평균이 빠른 <code>6→3→2</code> 대신 P99이 안전한 <code>6→2</code>로 노선을 역전시킵니다.
+        </p>
+      </div>
+      <div class="grid-3">
+        <div class="box">
+          <h3>🚶 Walk (15 min)</h3>
+          <p class="en">Misses the 08:18 Line 6 train. Forces a 7-minute platform wait and breaches the 09:00 P99 deadline.</p>
+          <p class="ko">6호선 역까지 15분 소요. 08:18 열차를 놓쳐 지각 리스크 급증.</p>
+        </div>
+        <div class="box" style="border-color: var(--accent);">
+          <h3>🏃 Strava Run (5 min)</h3>
+          <p class="en">Grade-adjusted Strava pace (`4'30"/km`) cuts access to 5m—unless sidewalk construction blocks the path!</p>
+          <p class="ko">Strava 경사 보정 페이스로 5분 만에 주파—단, 인도 공사/페스티벌 구간 발생 시 페이스 저하 감시.</p>
+        </div>
+        <div class="box" style="border-color: var(--accent2);">
+          <h3>🚲 38 km/h Bike + Lock (5 min)</h3>
+          <p class="en">38 km/h steep downhill ride (3.5m) + 45s rack lock + 35s gate sprint = 5m access with 60% less sweat!</p>
+          <p class="ko">시속 38km 급경사 다운힐(3.5분) + 역 거치대 잠금(45초) = 땀 흘리지 않고 5분 만에 앞 열차 탑승!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: CLIMAX WOW — LIVE PACE-DROP & TACTICAL VOICE BAILOUT -->
+    <section class="slide">
+      <div>
+        <div class="slide-kicker">03 · Climax Feature — Real-Time Tactical Voice Coach</div>
+        <h2 class="en">🎧 Live Pace-Drop Detection & Tactical Voice Bailout</h2>
+        <h2 class="ko">🎧 실시간 러닝 페이스 저하 감지 & 즉시 택시 환승 보이스 피드백!</h2>
+        <p class="lead en">
+          What if you start running, hit a sidewalk construction bottleneck or fatigue, and your pace drops from <code>4'30"/km</code> to <code>5'50"/km</code>?
+        </p>
+        <p class="lead ko">
+          러닝 모드로 출발했는데 인도 공사 구간이나 체력 저하로 페이스가 떨어지면 어떻게 될까요? 이미 놓칠 열차를 향해 끝까지 뛰게 두지 않습니다!
+        </p>
+      </div>
+      <div class="voice-banner">
+        <h3 style="color: #fda4af; font-size: 1.2rem; margin-bottom: 8px;" class="en">🔊 LIVE VOICE INTERVENTION (Web Speech Audio Coach)</h3>
+        <h3 style="color: #fda4af; font-size: 1.2rem; margin-bottom: 8px;" class="ko">🔊 실시간 이어폰 음성 피드백 (실제 데모 시연 음성)</h3>
+        <p style="font-size: 1.15rem; font-weight: 700; color: #fff;" class="en">
+          "⚠️ Alert: Your running pace dropped to 5:50/km near the sidewalk construction zone. Catching the 08:18 Line 6 train is now physically impossible (PLAN_INFEASIBLE). Stop running immediately—hail the taxi 80 meters ahead at the intersection right now to guarantee your 09:00 arrival!"
+        </p>
+        <p style="font-size: 1.15rem; font-weight: 700; color: #fff;" class="ko">
+          "⚠️ 경고: 인도 혼잡으로 러닝 페이스가 km당 5분 50초로 저하되었습니다. 원래 계획된 08시 18분 열차 탑승이 물리적으로 불가능합니다. 무리해서 뛰지 말고 지금 바로 전방 80m 교차로에서 택시로 갈아타십시오!"
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="box" style="border-color: var(--accent);">
+          <h3 class="en">🚦 Zero-Stop Crosswalk Red-Light Bypass (-88s Net)</h3>
+          <h3 class="ko">🚦 사거리 적색신호 무정차 우회 (탄력 보존 & 88초 단축)</h3>
+          <p class="en">Standing at a <strong>110s red light</strong> kills your running/cycling momentum. Voice Coach redirects you right <strong>+50m (+22s run)</strong> to an <strong>unsignalized crosswalk</strong> or L-Turn—saving <strong>-88s net</strong> without stopping!</p>
+          <p class="ko">사거리 적색 신호(<strong>110초 대기</strong>)에서 멈춰 서면 러닝/자전거 탄력(Momentum)이 깨집니다. 즉시 이어폰 음성으로 <strong>우측 50m 신호등 없는 횡단보도 무정차 우회(+22초 주행, 순수 -88초 단축)</strong>를 지시합니다!</p>
+        </div>
+        <div class="box" style="border-color: var(--danger);">
+          <h3 style="color: var(--danger);" class="en">🚕 Zero-Regret Pace-Drop Taxi Pivot</h3>
+          <h3 class="ko">🚕 페이스 저하 시 즉각적 택시 환승 보이스 코칭</h3>
+          <p class="en">Compares remaining distance × live Strava pace against train door-close countdown, pivoting you to a taxi 80m ahead the instant catching the train becomes impossible.</p>
+          <p class="ko">남은 거리 × 실시간 페이스를 열차 출입문 닫힘 시간과 초 단위로 비교하여, 원래 열차 탑승이 불가능해지는 즉시 전방 80m 택시 환승을 음성으로 명령합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: 61S STALE-DATA FAIL-CLOSED GATE -->
+    <section class="slide">
+      <div>
+        <div class="slide-kicker">04 · Fail-Closed Telemetry Governance</div>
+        <h2 class="en">🛑 The 60-Second Stale-Telemetry Fail-Closed Gate</h2>
+        <h2 class="ko">🛑 61초 Stale 데이터 감지 시 Fail-Closed 실행 차단 게이트</h2>
+        <p class="lead en">
+          Never command a human to sprint or ride downhill at 38 km/h when the transit feed is older than 60 seconds.
+        </p>
+        <p class="lead ko">
+          실시간 지하철 위치 데이터가 60초를 초과해 낡았을 때는 절대 시속 38km 다운힐이나 전력 질주를 지시하지 않습니다.
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="box" style="border-color: var(--accent);">
+          <h3 class="en">🟢 Fresh Telemetry (&le; 60s)</h3>
+          <h3 class="ko">🟢 신선한 데이터 (&le; 60초)</h3>
+          <p class="en">Gate is <code>OPEN</code>. High-exertion recommendations (`38 km/h Bike-and-Lock` and `Strava Run`) are authorized with live voice coaching.</p>
+          <p class="ko">게이트 <code>OPEN</code>. 시속 38km 자전거 다운힐 및 Strava 러닝 타임어택 권고와 실시간 보이스 코칭 활성화.</p>
+        </div>
+        <div class="box" style="border-color: var(--danger);">
+          <h3 style="color: var(--danger);" class="en">🛑 Stale Telemetry (&gt; 60s, e.g. 68s)</h3>
+          <h3 style="color: var(--danger);" class="ko">🛑 낡은 데이터 (&gt; 60초, 예: 68초)</h3>
+          <p class="en">Gate trips to <strong><code>FAIL-CLOSED HOLD (STALE_TRAIN_DATA)</code></strong>. Suppresses reckless sprint commands and defaults to the safest buffered corridor.</p>
+          <p class="ko">즉시 <strong><code>FAIL-CLOSED HOLD (STALE_TRAIN_DATA)</code></strong> 발동. 이미 떠난 유령 열차를 향한 위험한 질주를 차단하고 안전 루트로 안내합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: LIVE VERIFICATION -->
+    <section class="slide">
+      <div>
+        <div class="slide-kicker">05 · Live Demo & Cloud Run Ready</div>
+        <h2 class="en">Hear the Live Voice Bailout & Test the Gate on <code>:8085</code></h2>
+        <h2 class="ko">지금 바로 <code>:8085</code>에서 실시간 택시 환승 보이스 피드백을 들어보세요!</h2>
+        <p class="lead en">
+          100% verified across Node.js & Python test suites, with one-command Cloud Run deployment ready.
+        </p>
+        <p class="lead ko">
+          Node.js 및 Python 이중 테스트 100% 통과 완료 · Cloud Run 원커맨드 배포 준비 완료.
+        </p>
+      </div>
+      <div class="grid-2">
+        <div class="box">
+          <h3 class="en">🏆 Why Judges Remember PhysioRoute (#5)</h3>
+          <h3 class="ko">🏆 심사위원의 뇌리에 박히는 3대 임팩트</h3>
+          <ul class="en">
+            <li><strong>Chief-of-Staff Dual Briefing</strong>: ⚡ Fastest vs 🛡️ Safest (combining Strava, 38 km/h bike, sidewalk construction & festivals).</li>
+            <li><strong>61s Fail-Closed Gate</strong>: Protects physical safety when APIs lag.</li>
+            <li><strong>🎧 Live Voice Bailout</strong>: Speaks aloud mid-run when pace drops: <em>"Train impossible—switch to a taxi 80m ahead now!"</em></li>
+          </ul>
+          <ul class="ko">
+            <li><strong>내 유능한 부하 브리핑</strong>: ⚡ 가장 빠른 길 vs 🛡️ 가장 안전한 길 (Strava + 38km/h 자전거 + 인도 공사/페스티벌 통합).</li>
+            <li><strong>61초 Fail-Closed 안전 게이트</strong>: 낡은 데이터 기반 무모한 질주 원천 차단.</li>
+            <li><strong>🎧 실시간 택시 환승 음성 피드백</strong>: 페이스 저하 시 즉각 터져 나오는 현장감 넘치는 보이스 코칭!</li>
+          </ul>
+        </div>
+        <div class="box" style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:16px;">
+          <h3 class="en">🚀 Launch Live Cockpit (<code>:8085</code>)</h3>
+          <h3 class="ko">🚀 라이브 앱 열기 (<code>:8085</code>)</h3>
+          <p class="en">Test the Fastest/Safest briefings, 68s Stale Gate, and trigger the Live Voice Taxi Bailout on `:8085`.</p>
+          <p class="ko">`:8085`에서 최단/안전 브리핑, 68초 Stale 차단, 그리고 실시간 택시 환승 음성 피드백을 직접 시연해 보세요.</p>
+          <a class="cta-btn" href="http://localhost:8085" target="_blank">Open Live App (http://localhost:8085) →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>PhysioRoute: Run-or-Miss — Candidate #5</span>
+    <span>Use <strong>← / → Arrow Keys</strong> to navigate slides · Click <strong>EN / 한국어</strong> to toggle language</span>
+  </footer>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slide-indicator');
+    function showSlide(idx) {
+      slides[current].classList.remove('active');
+      current = (idx + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      indicator.textContent = `${current + 1} / ${slides.length}`;
+    }
+    function nextSlide() { showSlide(current + 1); }
+    function prevSlide() { showSlide(current - 1); }
+    function toggleLang() { document.body.classList.toggle('lang-ko'); }
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+  </script>
+</body>
+</html>

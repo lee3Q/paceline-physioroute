@@ -1,0 +1,20 @@
+{
+  "name": "PhysioRoute: Run-or-Miss (Android Live Nav)",
+  "short_name": "PhysioRoute",
+  "description": "출발 전 3초 웹 플래너 & 내 몸 데이터(Strava/Samsung Health) 연동 안드로이드 실시간 러닝·자전거 보이스 네비게이션",
+  "start_url": "/?mode=android",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070D19",
+  "theme_color": "#10B981",
+  "lang": "ko-KR",
+  "categories": ["navigation", "fitness", "health", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/nav_hud_pov.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

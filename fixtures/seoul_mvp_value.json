@@ -1,0 +1,662 @@
+{
+  "fixture_id": "seoul_value_v1",
+  "version": "1.0.0",
+  "region": "Seoul, KR",
+  "target_platform": "mobile_web_adult_mvp",
+  "baseline_route": "walk_subway",
+  "baseline_duration_seconds": 1800,
+  "canonical_candidates": {
+    "walk": {
+      "duration_seconds": 2400,
+      "cost_krw": 0,
+      "run_seconds": 0,
+      "cycle_seconds": 0
+    },
+    "walk_subway": {
+      "duration_seconds": 1800,
+      "cost_krw": 1550,
+      "run_seconds": 0,
+      "cycle_seconds": 0
+    },
+    "run_subway": {
+      "duration_seconds": 1440,
+      "cost_krw": 1550,
+      "run_seconds": 180,
+      "cycle_seconds": 0
+    },
+    "own_bike": {
+      "duration_seconds": 1560,
+      "cost_krw": 0,
+      "run_seconds": 0,
+      "cycle_seconds": 900
+    },
+    "ddareungi": {
+      "duration_seconds": 1620,
+      "cost_krw": 1000,
+      "run_seconds": 0,
+      "cycle_seconds": 1000
+    },
+    "taxi_subway": {
+      "duration_seconds": 1320,
+      "cost_krw": 8500,
+      "run_seconds": 0,
+      "cycle_seconds": 0
+    }
+  },
+  "conditional_boarding_examples": {
+    "boardable": {
+      "input": {
+        "platform_arrival_s": 180,
+        "train_departure_s": 240,
+        "boarding_margin_s": 60,
+        "baseline_arrival_s": 1200,
+        "candidate_arrival_s": 960
+      },
+      "expected": {
+        "boardable": true,
+        "saving_s": 240,
+        "guidance_text": "08:03까지 역 입구에 도착하면 08:04:30 열차를 탈 수 있습니다"
+      }
+    },
+    "missed_by_1s": {
+      "input": {
+        "platform_arrival_s": 181,
+        "train_departure_s": 240,
+        "boarding_margin_s": 60,
+        "baseline_arrival_s": 1200,
+        "candidate_arrival_s": 960
+      },
+      "expected": {
+        "boardable": false,
+        "saving_s": 0
+      }
+    }
+  },
+  "train_freshness_examples": {
+    "stale_61s": {
+      "input": {
+        "age_seconds": 61,
+        "departure_available": true
+      },
+      "expected": {
+        "eligible_for_fastest": false,
+        "reason": "STALE_TRAIN_DATA"
+      }
+    },
+    "fresh_60s": {
+      "input": {
+        "age_seconds": 60,
+        "departure_available": true
+      },
+      "expected": {
+        "eligible_for_fastest": true,
+        "reason": null
+      }
+    }
+  },
+  "stale_composite_example": {
+    "input": {
+      "fixture": "seoul_value_v1",
+      "budget_krw": 10000,
+      "max_run_seconds": 180,
+      "max_cycle_seconds": 1200,
+      "own_bike": true,
+      "train_age_s": 61,
+      "ddareungi_age_s": 61,
+      "taxi_wait_age_s": 121,
+      "taxi_wait_p95_s": null
+    },
+    "expected": {
+      "route": "own_bike",
+      "duration_seconds": 1560,
+      "cost_krw": 0,
+      "saved_seconds": null
+    }
+  },
+  "field_trial_status": {
+    "conducted": false,
+    "execution_mode": "skip_run",
+    "required_seoul_field_trials": 12,
+    "required_180s_faster_count": 6,
+    "supplier_api_verified": false,
+    "claim_boundary": "fixture_verification_only_not_field_proven"
+  },
+  "unresolved_data_policy": {
+    "road_traffic_ttl_seconds": {
+      "option_a": 300,
+      "option_b": 120,
+      "status": "UNRESOLVED_CONFLICT_PRESERVED"
+    },
+    "taxi_wait_estimation": {
+      "option_a": "strict_prohibit_fallback_exclude_on_expiry",
+      "option_b": "allow_p95_plus_120s_when_30d_same_zone_day_slot_samples_ge_30",
+      "status": "UNRESOLVED_CONFLICT_PRESERVED"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "seoul_01",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "ranking_inversion_step1_taxi_subway",
+      "verifies": ["taxi_wait", "traffic", "station_entry", "platform_move", "budget", "stamina"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true
+      },
+      "expected": {
+        "route": "taxi_subway",
+        "duration_seconds": 1320,
+        "cost_krw": 8500,
+        "saved_seconds": 480
+      }
+    },
+    {
+      "id": "seoul_02",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "ranking_inversion_step2_run_subway",
+      "verifies": ["budget", "conditional_boarding", "station_entry", "transfer"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_03",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "ranking_inversion_step3_own_bike",
+      "verifies": ["stamina_run_limit", "own_bike"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1200,
+        "own_bike": true
+      },
+      "expected": {
+        "route": "own_bike",
+        "duration_seconds": 1560,
+        "cost_krw": 0,
+        "saved_seconds": 240
+      }
+    },
+    {
+      "id": "seoul_04",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "ranking_inversion_step4_ddareungi",
+      "verifies": ["ddareungi_rent_return", "ddareungi_stock", "own_bike_false"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1200,
+        "own_bike": false
+      },
+      "expected": {
+        "route": "ddareungi",
+        "duration_seconds": 1620,
+        "cost_krw": 1000,
+        "saved_seconds": 180
+      }
+    },
+    {
+      "id": "seoul_05",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "ranking_inversion_step5_walk_subway",
+      "verifies": ["ddareungi_stock_zero", "reroute_fallback"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "ddareungi_stock": 0
+      },
+      "expected": {
+        "route": "walk_subway",
+        "duration_seconds": 1800,
+        "cost_krw": 1550,
+        "saved_seconds": 0
+      }
+    },
+    {
+      "id": "seoul_06",
+      "origin": "강남역 인근",
+      "destination": "을지로입구역",
+      "departure_time": "08:00:00",
+      "category": "stale_data_composite_fail_closed",
+      "verifies": ["data_expiry", "reroute", "null_saved_seconds_when_baseline_stale"],
+      "input": {
+        "fixture": "seoul_value_v1",
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "train_age_s": 61,
+        "ddareungi_age_s": 61,
+        "taxi_wait_age_s": 121,
+        "taxi_wait_p95_s": null
+      },
+      "expected": {
+        "route": "own_bike",
+        "duration_seconds": 1560,
+        "cost_krw": 0,
+        "saved_seconds": null
+      }
+    },
+    {
+      "id": "seoul_07",
+      "origin": "합정역 인근",
+      "destination": "시청역",
+      "departure_time": "08:00:00",
+      "category": "conditional_boarding_exact_boundary_180s",
+      "verifies": ["conditional_boarding", "station_entry", "platform_move"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "platform_arrival_s": 180,
+        "train_departure_s": 240,
+        "boarding_margin_s": 60
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_08",
+      "origin": "합정역 인근",
+      "destination": "시청역",
+      "departure_time": "08:00:00",
+      "category": "conditional_boarding_missed_181s_reroute_ddareungi",
+      "verifies": ["conditional_boarding_miss", "reroute", "ddareungi_rent_return"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "platform_arrival_s": 181,
+        "train_departure_s": 240,
+        "boarding_margin_s": 60
+      },
+      "expected": {
+        "route": "ddareungi",
+        "duration_seconds": 1620,
+        "cost_krw": 1000,
+        "saved_seconds": 180
+      }
+    },
+    {
+      "id": "seoul_09",
+      "origin": "여의도역 인근",
+      "destination": "광화문역",
+      "departure_time": "08:00:00",
+      "category": "interval_upper_bound_station_entry",
+      "verifies": ["station_entry_interval_upper_bound", "transfer"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "component_overrides": {
+          "run_subway": {
+            "station_entry_s": [60, 120]
+          }
+        }
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1500,
+        "cost_krw": 1550,
+        "saved_seconds": 300
+      }
+    },
+    {
+      "id": "seoul_10",
+      "origin": "성수역 인근",
+      "destination": "삼성역",
+      "departure_time": "08:00:00",
+      "category": "interval_upper_bound_bike_rent_return",
+      "verifies": ["ddareungi_rent_return_interval_upper_bound"],
+      "input": {
+        "budget_krw": 1500,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "component_overrides": {
+          "ddareungi": {
+            "bike_rent_return_s": [60, 120]
+          }
+        }
+      },
+      "expected": {
+        "route": "ddareungi",
+        "duration_seconds": 1620,
+        "cost_krw": 1000,
+        "saved_seconds": 180
+      }
+    },
+    {
+      "id": "seoul_11",
+      "origin": "홍대입구역 인근",
+      "destination": "공덕역",
+      "departure_time": "08:00:00",
+      "category": "ddareungi_destination_return_unavailable",
+      "verifies": ["ddareungi_return_dock_unavailable", "reroute"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "ddareungi_return_available": false
+      },
+      "expected": {
+        "route": "walk_subway",
+        "duration_seconds": 1800,
+        "cost_krw": 1550,
+        "saved_seconds": 0
+      }
+    },
+    {
+      "id": "seoul_12",
+      "origin": "잠실역 인근",
+      "destination": "선릉역",
+      "departure_time": "08:00:00",
+      "category": "taxi_wait_p95_plus_120_fallback_valid_samples",
+      "verifies": ["taxi_wait_p95_fallback", "traffic"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "taxi_wait_age_s": 125,
+        "taxi_wait_p95_s": 60,
+        "taxi_wait_sample_count": 35,
+        "taxi_wait_window_days": 30
+      },
+      "expected": {
+        "route": "taxi_subway",
+        "duration_seconds": 1380,
+        "cost_krw": 8500,
+        "saved_seconds": 420
+      }
+    },
+    {
+      "id": "seoul_13",
+      "origin": "잠실역 인근",
+      "destination": "선릉역",
+      "departure_time": "08:00:00",
+      "category": "taxi_wait_stale_insufficient_samples_excluded",
+      "verifies": ["taxi_wait_sample_threshold_fail_closed", "reroute"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "taxi_wait_age_s": 125,
+        "taxi_wait_p95_s": 60,
+        "taxi_wait_sample_count": 19,
+        "taxi_wait_window_days": 30
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_14",
+      "origin": "용산역 인근",
+      "destination": "종각역",
+      "departure_time": "08:00:00",
+      "category": "traffic_stale_over_300s_excludes_taxi",
+      "verifies": ["traffic_expiry_300s", "reroute"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "traffic_age_s": 301
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_15",
+      "origin": "용산역 인근",
+      "destination": "종각역",
+      "departure_time": "08:00:00",
+      "category": "traffic_strict_120s_policy_excludes_taxi_at_150s",
+      "verifies": ["traffic_strict_120s_policy", "reroute"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": false,
+        "traffic_age_s": 150,
+        "traffic_ttl_s": 120
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_16",
+      "origin": "왕십리역 인근",
+      "destination": "동대문역사문화공원역",
+      "departure_time": "08:00:00",
+      "category": "zero_budget_no_own_bike_selects_walk",
+      "verifies": ["budget_zero", "walk_fallback"],
+      "input": {
+        "budget_krw": 0,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 0,
+        "own_bike": false
+      },
+      "expected": {
+        "route": "walk",
+        "duration_seconds": 2400,
+        "cost_krw": 0,
+        "saved_seconds": -600
+      }
+    },
+    {
+      "id": "seoul_17",
+      "origin": "사당역 인근",
+      "destination": "교대역",
+      "departure_time": "08:00:00",
+      "category": "cycle_stamina_limit_filters_bikes",
+      "verifies": ["stamina_cycle_limit", "walk_subway"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 600,
+        "own_bike": true
+      },
+      "expected": {
+        "route": "walk_subway",
+        "duration_seconds": 1800,
+        "cost_krw": 1550,
+        "saved_seconds": 0
+      }
+    },
+    {
+      "id": "seoul_18",
+      "origin": "신도림역 인근",
+      "destination": "영등포구청역",
+      "departure_time": "08:00:00",
+      "category": "partial_run_limit_120s_selects_ddareungi",
+      "verifies": ["stamina_run_limit", "ddareungi"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 120,
+        "max_cycle_seconds": 1200,
+        "own_bike": false
+      },
+      "expected": {
+        "route": "ddareungi",
+        "duration_seconds": 1620,
+        "cost_krw": 1000,
+        "saved_seconds": 180
+      }
+    },
+    {
+      "id": "seoul_19",
+      "origin": "건대입구역 인근",
+      "destination": "성수역",
+      "departure_time": "08:00:00",
+      "category": "missing_component_range_excludes_candidate",
+      "verifies": ["missing_component_range_fail_closed"],
+      "input": {
+        "budget_krw": 2000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "component_overrides": {
+          "run_subway": {
+            "transfer_s": null
+          }
+        }
+      },
+      "expected": {
+        "route": "own_bike",
+        "duration_seconds": 1560,
+        "cost_krw": 0,
+        "saved_seconds": 240
+      }
+    },
+    {
+      "id": "seoul_20",
+      "origin": "마포구청역 인근",
+      "destination": "디지털미디어시티역",
+      "departure_time": "08:00:00",
+      "category": "fresh_60s_train_and_ddareungi_boundary",
+      "verifies": ["ttl_exact_boundary_60s_and_120s"],
+      "input": {
+        "budget_krw": 10000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": true,
+        "train_age_s": 60,
+        "ddareungi_age_s": 60,
+        "taxi_wait_age_s": 120,
+        "traffic_age_s": 300
+      },
+      "expected": {
+        "route": "taxi_subway",
+        "duration_seconds": 1320,
+        "cost_krw": 8500,
+        "saved_seconds": 480
+      }
+    },
+    {
+      "id": "seoul_21",
+      "origin": "양재역 인근",
+      "destination": "역삼역",
+      "departure_time": "08:00:00",
+      "category": "commute_run_subway_saves_360s",
+      "verifies": ["conditional_boarding", "run_subway_saving"],
+      "input": {
+        "budget_krw": 3000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 900,
+        "own_bike": false
+      },
+      "expected": {
+        "route": "run_subway",
+        "duration_seconds": 1440,
+        "cost_krw": 1550,
+        "saved_seconds": 360
+      }
+    },
+    {
+      "id": "seoul_22",
+      "origin": "교대역 인근",
+      "destination": "고속터미널역",
+      "departure_time": "08:00:00",
+      "category": "commute_own_bike_saves_240s_zero_cost",
+      "verifies": ["own_bike", "zero_budget_saving"],
+      "input": {
+        "budget_krw": 0,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1000,
+        "own_bike": true
+      },
+      "expected": {
+        "route": "own_bike",
+        "duration_seconds": 1560,
+        "cost_krw": 0,
+        "saved_seconds": 240
+      }
+    },
+    {
+      "id": "seoul_23",
+      "origin": "서울역 인근",
+      "destination": "시청역",
+      "departure_time": "08:00:00",
+      "category": "commute_ddareungi_saves_180s_budget_1200",
+      "verifies": ["ddareungi", "budget_under_subway_fare"],
+      "input": {
+        "budget_krw": 1200,
+        "max_run_seconds": 0,
+        "max_cycle_seconds": 1100,
+        "own_bike": false,
+        "ddareungi_stock": 8
+      },
+      "expected": {
+        "route": "ddareungi",
+        "duration_seconds": 1620,
+        "cost_krw": 1000,
+        "saved_seconds": 180
+      }
+    },
+    {
+      "id": "seoul_24",
+      "origin": "판교/양재 환승거점",
+      "destination": "강남역",
+      "departure_time": "08:00:00",
+      "category": "commute_taxi_subway_saves_480s",
+      "verifies": ["taxi_subway", "full_multimodal_comparison"],
+      "input": {
+        "budget_krw": 9000,
+        "max_run_seconds": 180,
+        "max_cycle_seconds": 1200,
+        "own_bike": false
+      },
+      "expected": {
+        "route": "taxi_subway",
+        "duration_seconds": 1320,
+        "cost_krw": 8500,
+        "saved_seconds": 480
+      }
+    }
+  ]
+}

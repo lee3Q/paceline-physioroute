@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PACELINE — Biometric & Micro-Obstacle Urban Navigation Engine</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 3"/>
+          <path d="M9 16L15 22L24 10" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24" cy="10" r="3" fill="#a855f7"/>
+        </svg>
+        <span class="logo-badge">PACELINE</span>
+        <span class="logo-sub">HYPER-LOCAL MOBILITY STRATEGY</span>
+      </div>
+      <div class="header-actions">
+        <button id="btnDemoPreset" class="btn-preset">
+          ⚡ Load Demo Profile (38km/h Bike · 4'30"/km Strava)
+        </button>
+        <button id="btnLangToggle" class="btn-lang">KR / EN</button>
+      </div>
+    </header>
+
+    <!-- First Fold: Hero Question -->
+    <section class="hero-section">
+      <h1 class="hero-title">Where do you need to be?</h1>
+      <p class="hero-subtitle">
+        Combines your real Strava pace, hill slope physics (-11.4%), and live signal/transit telemetry for a 0% late-risk strategy.
+      </p>
+
+      <!-- Large Search Input Bar -->
+      <div class="search-bar-card">
+        <div class="search-field">
+          <label for="inputOrigin">Origin (지형·경사)</label>
+          <input type="text" id="inputOrigin" value="Geumho-dong Hill Residence (-11.4% Grade)" placeholder="Origin를 입력하세요">
+        </div>
+        <div class="search-field">
+          <label for="inputDest">Destination</label>
+          <input type="text" id="inputDest" value="Gangnam Station Line 2 Office" placeholder="도착지를 입력하세요">
+        </div>
+        <div class="search-field deadline-field">
+          <label for="inputDeadline">Target Cutoff</label>
+          <input type="text" id="inputDeadline" value="08:30 AM" placeholder="08:30 AM">
+        </div>
+        <button id="btnFindStrategy" class="btn-search">
+          🚀 Compute Personal Route Strategy
+        </button>
+      </div>
+    </section>
+
+    <!-- Friendly AI Coach Character Interview -->
+    <section id="onboardingCoachBox" class="onboarding-box">
+      <div class="onboarding-header">
+        <div class="buddy-avatar-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Buddy Body -->
+            <rect x="6" y="8" width="52" height="48" rx="16" fill="url(#buddyGrad)"/>
+            <!-- Glass Visor -->
+            <rect x="12" y="16" width="40" height="24" rx="8" fill="#0b1329" stroke="#38bdf8" stroke-width="1.5"/>
+            <!-- Animated Eyes -->
+            <g class="buddy-eyes">
+              <ellipse cx="24" cy="28" rx="4" ry="5" fill="#38bdf8"/>
+              <circle cx="25.5" cy="26.5" r="1.5" fill="#ffffff"/>
+              <ellipse cx="40" cy="28" rx="4" ry="5" fill="#38bdf8"/>
+              <circle cx="41.5" cy="26.5" r="1.5" fill="#ffffff"/>
+            </g>
+            <!-- Smile -->
+            <path d="M26 46C29 48.5 35 48.5 38 46" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Antenna / Signal -->
+            <line x1="32" y1="2" x2="32" y2="8" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="2" r="2" fill="#a855f7"/>
+            <defs>
+              <linearGradient id="buddyGrad" x1="6" y1="8" x2="58" y2="56" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0284c7"/>
+                <stop offset="1" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="buddy-speech-bubble">
+          <strong>PACE 버디:</strong> "Welcome! Standard maps assume a flat 4 km/h walk. Answer 3 quick questions so PACELINE can model your real physical speed:"
+        </div>
+      </div>
+
+      <!-- 3 Steps Interview Cards -->
+      <div class="onboarding-steps">
+        <!-- Q1 -->
+        <div class="onboard-card">
+          <div class="onboard-card-title">Q1. 위치 &amp; 지형 정보</div>
+          <div class="onboard-card-desc">Allow live GPS, hill elevation grade (-11.4%), and intersection signal telemetry?</div>
+          <div class="chip-group">
+            <button class="onboard-chip" data-q="loc" data-val="allow">📍 Enable Location & Terrain</button>
+            <button class="onboard-chip" data-q="loc" data-val="manual">✏️ 수동 입력</button>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="onboard-card">
+          <div class="onboard-card-title">Q2. Micro-Mobility / Bike</div>
+          <div class="onboard-card-desc">Do you ride a personal bike (with station lock-up) or public bike-share?</div>
+          <div class="chip-group">
+            <button class="onboard-chip" data-q="bike" data-val="mybike">🚲 Personal Bike (38 km/h Downhill + 45s Lock)</button>
+            <button class="onboard-chip" data-q="bike" data-val="rental">🟢 Public Bike-Share</button>
+            <button class="onboard-chip" data-q="bike" data-val="none">👟 No Bike</button>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="onboard-card">
+          <div class="onboard-card-title">Q3. Running Pace / Strava</div>
+          <div class="onboard-card-desc">Can you run when pressed for time? Sync Strava or select your pace:</div>
+          <div class="chip-group">
+            <button class="onboard-chip" data-q="run" data-val="strava">🧡 Sync Strava (4'30"/km · 15m Walk in 5m)</button>
+            <button class="onboard-chip" data-q="run" data-val="manual_run">🏃 Remembered Pace (5'15"/km)</button>
+            <button class="onboard-chip" data-q="run" data-val="walk_only">🚶 Walk Only (4.0 km/h)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dual Studio Grid: Web Strategy Planner vs Android Companion Frame -->
+    <main id="mainStudioGrid" class="main-studio-grid">
+      
+      <!-- Left: Web Strategy Planner -->
+      <section class="planner-pane">
+        <div class="pane-title-bar">
+          <h2 class="pane-heading">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+            생체·지형 데이터 결합 이동 전략
+          </h2>
+          <span style="font-size:0.8rem; color:var(--accent-cyan); font-weight:600;">실시간 신호 &amp; 혼잡도 반영됨</span>
+        </div>
+
+        <!-- Card 1: Fastest -->
+        <div id="cardFastest" class="strategy-card active">
+          <div class="card-badge-row">
+            <span class="badge-tag badge-fast">⚡ Fastest Time-Attack Strategy</span>
+            <span class="prob-metric">지각 확률 0.0%</span>
+          </div>
+          <div class="time-hero">
+            19m 10s
+            <span class="time-diff">(Saves 14 mins vs. standard 33m map estimate!)</span>
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+            예상 도착: <strong>08:24 AM</strong> (마감 6분 전 세이프)
+          </div>
+
+          <div class="route-steps-flow">
+            <div class="route-step-item">
+              <span class="step-icon">🚲</span>
+              <span class="step-desc">금호동 언덕 자전거 하강 <strong>38km/h</strong> (5분)</span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🔒</span>
+              <span class="step-desc">신금호역 지하철 거치대 <strong>45초 거치</strong></span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🚇</span>
+              <span class="step-desc"><strong>6호선 ➔ 2호선 직결</strong> 환승 패스 (8분 주행)</span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🏃</span>
+              <span class="step-desc">강남역 출구 ➔ 무신호 횡단보도 러닝 <strong>4'30"/km</strong> (5분 주파)</span>
+            </div>
+          </div>
+
+          <div class="route-card-footer">
+            <span>체력 소모: 중상 (스프린트 450m)</span>
+            <span style="color:var(--accent-emerald);">신호 대기 제로화 우회 적용</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Safest -->
+        <div id="cardSafest" class="strategy-card">
+          <div class="card-badge-row">
+            <span class="badge-tag badge-safe">🛡️ Safest Zero-Risk Strategy</span>
+            <span class="prob-metric">지각 확률 0.0%</span>
+          </div>
+          <div class="time-hero">
+            22m 40s
+            <span class="time-diff" style="color:var(--text-muted);">(기존 지도 대비 10분 단축)</span>
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+            예상 도착: <strong>08:27 AM</strong> (마감 3분 전 안전 도착)
+          </div>
+
+          <div class="route-steps-flow">
+            <div class="route-step-item">
+              <span class="step-icon">🚲</span>
+              <span class="step-desc">금호동 완만 하강 <strong>24km/h</strong> 크루징 (6분 30초)</span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🔒</span>
+              <span class="step-desc">신금호역 자전거 안전 거치 (1분)</span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🚇</span>
+              <span class="step-desc"><strong>지하철 직결</strong> 탑승 (9분)</span>
+            </div>
+            <div class="route-step-item">
+              <span class="step-icon">🚶</span>
+              <span class="step-desc">강남역 출구 빠른 걸음 <strong>5.8km/h</strong> 쾌적 이동 (6분 10초)</span>
+            </div>
+          </div>
+
+          <div class="route-card-footer">
+            <span>체력 소모: 최저 (땀 없는 쾌적 이동)</span>
+            <span style="color:var(--accent-cyan);">리스크 버퍼 3분 20초 확보</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="btnSendToAndroid" class="btn-send-android">
+          📱 Send Strategy to Android Live Voice Navigation ➔
+        </button>
+      </section>
+
+      <!-- Right: Android Companion App Frame -->
+      <section class="android-pane">
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          
+          <!-- Top Buds & Voice Status -->
+          <div class="companion-status-bar">
+            <div class="buds-status">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+              </svg>
+              <span>Galaxy Buds3 Pro · Live Earbud Voice Coaching ON</span>
+            </div>
+            <button id="btnVoiceToggle" class="btn-voice-toggle">🔊 Voice ON/OFF</button>
+          </div>
+
+          <!-- Interactive SVG Live Map -->
+          <div class="map-viewport">
+            <svg id="androidLiveMap" viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Dark Map Grid -->
+              <defs>
+                <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                </pattern>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <rect width="400" height="380" fill="url(#gridPattern)" />
+
+              <!-- Main Roads -->
+              <!-- Main Straight Road -->
+              <line x1="80" y1="340" x2="80" y2="60" stroke="#1e293b" stroke-width="24" stroke-linecap="round"/>
+              <line x1="80" y1="340" x2="80" y2="60" stroke="#334155" stroke-width="2" stroke-dasharray="8 6"/>
+
+              <!-- Intersection Cross Road -->
+              <line x1="20" y1="180" x2="380" y2="180" stroke="#1e293b" stroke-width="20" stroke-linecap="round"/>
+              <line x1="20" y1="180" x2="380" y2="180" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+              <!-- Red Light Intersection Block -->
+              <g id="intersectionLightGroup" transform="translate(80, 180)">
+                <circle cx="0" cy="0" r="16" fill="rgba(244, 63, 94, 0.25)"/>
+                <circle cx="0" cy="0" r="9" fill="#f43f5e" filter="url(#glow)"/>
+                <text x="18" y="4" fill="#fb7185" font-size="10" font-weight="bold" font-family="monospace">110s 적색불</text>
+              </g>
+
+              <!-- Planned Detour Route: Right Unsignaled Crosswalk -->
+              <path id="pathCrosswalkDetour" d="M 80 230 L 170 230 L 170 130 L 80 130 L 80 70" 
+                    stroke="#10b981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-dasharray="6 4" opacity="0.9"/>
+              <text x="180" y="175" fill="#34d399" font-size="9" font-weight="bold">우측 50m 무신호 횡단보도 (-88s)</text>
+
+              <!-- Dynamic Bus Reroute Path (Turn Right for Bus) -->
+              <path id="pathBusReroute" d="M 80 260 L 290 260 L 290 80" 
+                    stroke="#f59e0b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-dasharray="5 3" opacity="0.3"/>
+
+              <!-- Bus Stop Node -->
+              <g id="busStopNode" transform="translate(290, 240)">
+                <rect x="-10" y="-10" width="20" height="20" rx="4" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+                <text x="0" y="4" text-anchor="middle" font-size="11">🚏</text>
+                <text x="16" y="2" fill="#fbbf24" font-size="9" font-weight="bold">🚌 정류장: 3분 뒤 버스 도착</text>
+              </g>
+
+              <!-- Real-time Approaching Bus Icon -->
+              <g id="busAvatar" transform="translate(290, 320)">
+                <rect x="-12" y="-14" width="24" height="28" rx="6" fill="#f59e0b" filter="url(#glow)"/>
+                <text x="0" y="4" text-anchor="middle" font-size="14">🚌</text>
+              </g>
+
+              <!-- Dynamic Runner Avatar with Sweat Effect -->
+              <g id="runnerAvatar" transform="translate(80, 310)">
+                <!-- Pulse circle -->
+                <circle cx="0" cy="0" r="16" fill="rgba(56, 189, 248, 0.25)"/>
+                <circle cx="0" cy="0" r="9" fill="#38bdf8" filter="url(#glow)"/>
+                <!-- Running Marker -->
+                <text x="0" y="4" text-anchor="middle" font-size="12">🏃</text>
+                
+                <!-- Sweat Indicator (dynamic) -->
+                <g id="sweatEffect" opacity="0" transform="translate(10, -10)">
+                  <text font-size="12">💦</text>
+                </g>
+              </g>
+
+              <!-- Destination Flag -->
+              <g transform="translate(80, 50)">
+                <circle cx="0" cy="0" r="12" fill="#a855f7" filter="url(#glow)"/>
+                <text x="0" y="4" text-anchor="middle" font-size="10">🏁</text>
+                <text x="16" y="3" fill="#c084fc" font-size="10" font-weight="bold">강남역 오피스</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- HUD Real-time Metrics -->
+          <div class="hud-metrics-bar">
+            <div class="hud-tile">
+              <div class="hud-label">현재 페이스</div>
+              <div id="hudPace" class="hud-value">4'30"</div>
+            </div>
+            <div class="hud-tile">
+              <div class="hud-label">남은 시간 (ETA)</div>
+              <div id="hudEta" class="hud-value">19:10</div>
+            </div>
+            <div class="hud-tile">
+              <div class="hud-label">전략 상태</div>
+              <div id="hudStatus" class="hud-value" style="font-size:0.85rem; color:#10b981;">스프린트 최적화</div>
+            </div>
+          </div>
+
+          <!-- Live Voice Earphone Subtitle & Waveform -->
+          <div id="voiceTranscriptBox" class="voice-transcript-card">
+            <div class="voice-waveform">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <span style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; margin-left: 6px;">BUDS LIVE VOICE</span>
+            </div>
+            <div id="voiceText" class="voice-text">
+              "사거리 적색 신호가 110초 남았습니다. 우측 50m 무신호 횡단보도로 우회하세요."
+            </div>
+          </div>
+
+          <!-- Demo Simulation Controls -->
+          <div class="sim-controls-title">🎬 실시간 시뮬레이션 데모</div>
+          <div class="sim-buttons-stack">
+            <button id="btnSimTiredBus" class="btn-sim highlight">
+              🔥 데모 하이라이트: 뛰다가 지쳐서 감속(6'25") ➔ "우회전해서 3분 뒤 버스 타세요" 실시간 루트 변경
+            </button>
+            <button id="btnSimCrosswalk" class="btn-sim">
+              🚦 Scenario 2: 110s Red Light Blocked ➔ Veer Right 50m Unsignalized Crosswalk (-88s)
+            </button>
+            <button id="btnSimSubway" class="btn-sim">
+              🚇 Scenario 3: Line 3 Transfer Delay ➔ Switch to Line 6➔2 Direct Topology
+            </button>
+            <button id="btnSimBike" class="btn-sim">
+              🚲 금호동 언덕 38km/h 하강 &amp; 역 앞 45초 거치
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="app-footer">
+      PACELINE Core Engine · Conditional Route Freshness Gate · Real-Time Biometric &amp; Physical Terrain Routing
+    </footer>
+  </div>
+
+  <!-- Connected Client App Logic -->
+  <script src="/app.js"></script>
+</body>
+</html>

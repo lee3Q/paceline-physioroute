@@ -743,14 +743,107 @@ document.getElementById = function(id) {
         window.triggerScenario('normal');
       });
     }
+
+    // Highlight active situation button
+    const sitBtns = document.querySelectorAll('.situation-btn');
+    sitBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sitBtns.forEach(b => b.classList.remove('active-sim'));
+        btn.classList.add('active-sim');
+      });
+    });
+
+    // Scene 2 User Action Choice Buttons (Accept Reroute vs Keep Current)
+    const btnAccept = document.getElementById('btnAcceptReroute');
+    const btnKeep = document.getElementById('btnKeepCurrent');
+    const stateTag = document.getElementById('scenarioStateTag');
+
+    if (btnAccept) {
+      btnAccept.addEventListener('click', () => {
+        if (stateTag) {
+          stateTag.textContent = '우회 경로 적용됨';
+          stateTag.style.background = 'rgba(16, 185, 129, 0.22)';
+          stateTag.style.color = '#6ee7b7';
+        }
+        speak('추천 우회 경로로 안내를 변경했습니다. 정시 도착이 가능합니다.');
+      });
+    }
+
+    if (btnKeep) {
+      btnKeep.addEventListener('click', () => {
+        if (stateTag) {
+          stateTag.textContent = '기존 경로 유지';
+          stateTag.style.background = 'rgba(56, 189, 248, 0.2)';
+          stateTag.style.color = '#7dd3fc';
+        }
+        speak('현재 경로를 그대로 유지합니다. 안전에 유의해 이동하세요.');
+      });
+    }
+  }
+
+  // Scene Switcher (Scene 1: Pre-departure Plan <-> Scene 2: In-Navigation Live HUD)
+  window.switchScene = function(targetScene, routeChoice = 'A') {
+    const scenePlan = document.getElementById('scenePlan');
+    const sceneNav = document.getElementById('sceneNav');
+    const tabPlan = document.getElementById('tabScenePlan');
+    const tabNav = document.getElementById('tabSceneNav');
+
+    if (targetScene === 'nav') {
+      if (scenePlan) scenePlan.classList.remove('active');
+      if (sceneNav) sceneNav.classList.add('active');
+      if (tabPlan) tabPlan.classList.remove('active');
+      if (tabNav) tabNav.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (routeChoice === 'B') {
+        const etaBadge = document.getElementById('simEtaBadge');
+        const paceBadge = document.getElementById('simPaceBadge');
+        if (etaBadge) etaBadge.textContent = '08:27 도착 예정 (평지 안전 경로)';
+        if (paceBadge) paceBadge.textContent = '페이스: 5\'20" /km (편안한 걸음)';
+        speak('평지 안전 경로 B로 안내를 시작합니다. 오르막 없이 편안하게 이동하세요.');
+      } else {
+        resetSimVisuals();
+        speak('추천 경로 A로 실시간 안내를 시작합니다. 이동 중 체력이나 신호등 상황이 바뀌면 바로 알려드릴게요.');
+      }
+    } else {
+      cancelCurrentAnimation();
+      if (sceneNav) sceneNav.classList.remove('active');
+      if (scenePlan) scenePlan.classList.add('active');
+      if (tabNav) tabNav.classList.remove('active');
+      if (tabPlan) tabPlan.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  function initSceneNavigation() {
+    const tabPlan = document.getElementById('tabScenePlan');
+    const tabNav = document.getElementById('tabSceneNav');
+    const btnBack = document.getElementById('btnBackToPlan');
+    const startBtns = document.querySelectorAll('.start-nav-btn');
+
+    if (tabPlan) tabPlan.addEventListener('click', () => window.switchScene('plan'));
+    if (tabNav) tabNav.addEventListener('click', () => window.switchScene('nav', 'A'));
+    if (btnBack) btnBack.addEventListener('click', () => window.switchScene('plan'));
+
+    startBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const routeChoice = btn.getAttribute('data-start-route') || 'A';
+        highlightRouteCard(routeChoice);
+        window.switchScene('nav', routeChoice);
+      });
+    });
   }
 
   // DOMContentLoaded Bootstrapper
   document.addEventListener('DOMContentLoaded', () => {
     initOnboarding();
+    initSceneNavigation();
     initSimulationTriggers();
     updateReasoningTrace('normal');
-    console.log('[PACELINE 5B Engine] Initialized successfully with 61s Epistemic Gate & Minetti Cw(i) trace.');
+    if (window.location.hash === '#nav' || window.location.search.includes('scene=nav')) {
+      window.switchScene('nav', 'A');
+    }
+    console.log('[PACELINE UX Engine] Scene-based navigation initialized.');
   });
 
 })();

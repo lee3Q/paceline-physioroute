@@ -1,603 +1,399 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PACELINE — Biometric & Micro-Obstacle Urban Navigation Engine</title>
-  <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PACELINE — 내 체력과 신호등을 아는 출퇴근 내비게이션</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="app-wrapper">
-    <!-- Top Cockpit Header -->
-    <header class="app-header">
-      <div class="header-left">
-        <div class="logo-group">
-          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="14" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 3"/>
-            <path d="M9 16L15 22L24 10" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="24" cy="10" r="3" fill="#a855f7"/>
-          </svg>
-          <span class="logo-badge">PACELINE</span>
-          <span class="logo-sub">AI MOBILITY ENGINE</span>
-        </div>
-        
-        <!-- Technical Proof Status Pills -->
-        <div class="proof-pills-bar">
-          <span class="proof-pill pill-cyan">
-            <span class="pill-dot"></span> Minetti Equation C<sub>w</sub>(i) Active
-          </span>
-          <span class="proof-pill pill-emerald" id="proofGatePill">
-            <span class="pill-dot"></span> 61s Fail-Closed Gate: VERIFIED
-          </span>
-          <span class="proof-pill pill-purple">
-            <span class="pill-dot"></span> Wear OS / Health Connect Stream
-          </span>
-        </div>
+  <div class="app-shell">
+    <!-- 상단 헤더: 앱 타이틀 + 장면(Scene) 전환 탭 -->
+    <header class="topbar">
+      <div class="brand-group">
+        <div class="brand-logo">⚡ PACELINE</div>
+        <span class="brand-sub">내 체력과 신호등 주기를 계산하는 출퇴근 내비게이션</span>
       </div>
 
-      <div class="header-actions">
-        <button id="btnDemoPreset" class="btn-preset" title="Load High-Performance Strava & Bike Profile">
-          ⚡ Demo Profile (38km/h Bike · 4'30" Strava)
+      <nav class="scene-tabs" role="tablist" aria-label="사용 단계 선택">
+        <button id="tabScenePlan" class="scene-tab active" data-scene="plan" type="button">
+          <span class="tab-step">1</span> 출발 전 · 경로 고르기
         </button>
-        <button id="btnVoiceToggle" class="btn-voice-toggle">
-          🔊 Voice Coaching ON
+        <button id="tabSceneNav" class="scene-tab" data-scene="nav" type="button">
+          <span class="tab-step">2</span> 이동 중 · 실시간 음성 안내
         </button>
-        <button id="btnLangToggle" class="btn-lang" title="Language is English">
-          EN (Active)
-        </button>
-      </div>
+      </nav>
     </header>
 
-    <!-- 1st-Fold Interactive 3-Step AI Coach Strip (Zero Vertical Clutter) -->
-    <section id="onboardingCoachBox" class="onboarding-hero cockpit-compact-onboarding cockpit-coach-strip">
-      <div class="coach-avatar-mini">
-        <svg width="38" height="38" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="6" y="8" width="52" height="48" rx="16" fill="url(#buddyGrad)"/>
-          <rect x="12" y="16" width="40" height="24" rx="8" fill="#0b1329" stroke="#38bdf8" stroke-width="1.5"/>
-          <g class="buddy-eyes">
-            <ellipse cx="24" cy="28" rx="4" ry="5" fill="#38bdf8"/>
-            <circle cx="25.5" cy="26.5" r="1.5" fill="#ffffff"/>
-            <ellipse cx="40" cy="28" rx="4" ry="5" fill="#38bdf8"/>
-            <circle cx="41.5" cy="26.5" r="1.5" fill="#ffffff"/>
-          </g>
-          <path d="M26 46C29 48.5 35 48.5 38 46" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="32" y1="2" x2="32" y2="8" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="32" cy="2" r="2" fill="#a855f7"/>
-          <defs>
-            <linearGradient id="buddyGrad" x1="6" y1="8" x2="58" y2="56" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0284c7"/>
-              <stop offset="1" stop-color="#7c3aed"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Live AI Coach Speech Bubble -->
-      <div class="coach-speech-compact">
-        <span class="coach-tag">PACE AI Coach</span>
-        <span id="buddyDialogue" class="coach-quote-text">
-          <span id="coachQuote">"Standard maps assume a flat 4 km/h walk. PACELINE computes your real Strava pace, hill physics (-11.4%), and micro-obstacles for 0% late risk."</span>
-        </span>
-      </div>
-
-      <!-- Compact 3-Step Pill Selector Strip -->
-      <div class="step-pill-group">
-        <!-- Step 1: Destination Selector -->
-        <div class="pill-step-item">
-          <span class="step-idx">1</span>
-          <span class="step-title">Dest:</span>
-          <div class="step-chips">
-            <button class="onboard-chip selected" data-dest="gangnam" data-q="loc" data-val="gangnam" data-preset="gangnam">
-              📍 Gangnam Stn (08:30)
-            </button>
-            <button class="onboard-chip" data-dest="pangyo" data-q="loc" data-val="pangyo" data-preset="pangyo">
-              📍 Pangyo Tech
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 2: Leg Condition / Pace Profile -->
-        <div class="pill-step-item">
-          <span class="step-idx">2</span>
-          <span class="step-title">Condition:</span>
-          <div class="step-chips">
-            <button class="onboard-chip selected" data-cond="normal" data-q="run" data-val="strava" data-preset="hybrid">
-              🔀 Hybrid (Pace + Transit)
-            </button>
-            <button class="onboard-chip" data-cond="sprint" data-q="run" data-val="sprint" data-preset="runner">
-              ⚡ Sprint (4'30")
-            </button>
-            <button class="onboard-chip" data-cond="bike" data-q="bike" data-val="mybike" data-preset="bike">
-              🚲 Bike (38km/h)
-            </button>
-            <button class="onboard-chip" data-cond="tired" data-q="run" data-val="walk_only" data-preset="safe">
-              🚶 Walk Only (No Sweat)
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 3: Urgency / Gate Mode -->
-        <div class="pill-step-item">
-          <span class="step-idx">3</span>
-          <span class="step-title">Gate:</span>
-          <div class="step-chips">
-            <button class="onboard-chip selected" data-prio="safe" data-q="gate" data-val="strict" data-preset="strict">
-              🛡️ Strict 60s TTL
-            </button>
-            <button class="onboard-chip" data-prio="fast" data-q="gate" data-val="timeattack" data-preset="timeattack">
-              ⚡ Time-Attack
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hidden accessible fields preserving legacy DOM IDs for automated tools -->
-      <div class="hidden-legacy-inputs" style="display:none;" aria-hidden="true">
-        <input type="text" id="inputOrigin" value="Geumho-dong Hill Residence (-11.4% Grade)">
-        <input type="text" id="inputDest" value="Gangnam Station Line 2 Office">
-        <input type="text" id="inputDeadline" value="08:30 AM">
-        <button id="btnFindStrategy">Compute</button>
-      </div>
-    </section>
-
-    <!-- 2-Column Split Cockpit (1st-Fold Desktop Viewport) -->
-    <main id="mainStudioGrid" class="main-studio-grid dual-studio">
-
-      <!-- Live Gemini Reasoning Trace & Minetti Biomechanics Strip -->
-      <div id="geminiTraceStrip" class="gemini-trace-strip" style="grid-column: 1 / -1;">
-        <span id="traceStep1" class="trace-step-pill">[1/3] Minetti Biomechanics: Cw(i) = 28.4 J/kg/m (+7.8% Grade) · HR 168 bpm</span>
-        <span id="traceStep2" class="trace-step-pill">[2/3] Epistemic Gate: Telemetry Age 1.2s (≤60s PASS) · Bus #146 in 180s</span>
-        <span id="traceStep3" class="trace-step-pill">[3/3] Gemini 2.5 Flash Live Action: Optimal Route Active</span>
-      </div>
-      
-      <!-- Left Column: Strategy Cards, Minetti GAP Physics & Gemini Reasoning Trace -->
-      <section class="planner-pane">
-        <div class="pane-title-bar">
-          <h2 class="pane-heading">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M3 9h18M9 21V9"/>
-            </svg>
-            Biometric &amp; Terrain-Coupled Route Strategy
-          </h2>
-          <span class="live-feed-badge">
-            <span class="pill-dot"></span> Live Signal &amp; Obstacle Feeds Active
-          </span>
-        </div>
-
-        <!-- Dual Route Strategy Cards -->
-        <div class="strategy-cards-container">
-          <!-- Card 1: Route A (Fastest Time-Attack) -->
-          <div id="cardFastest" class="strategy-card active">
-            <div id="routeFastCard" class="card-inner-anchor"></div>
-            <div class="card-badge-row">
-              <span class="badge-tag badge-fast">⚡ Route A: Fastest Time-Attack</span>
-              <span class="prob-metric">Late Risk 0.0%</span>
-            </div>
-            
-            <div class="time-hero-row">
-              <div class="time-hero">
-                <span id="etaFastValue">19m 10s</span>
-                <span class="time-diff">Saves 14 mins vs standard map</span>
-              </div>
-              <div class="arrival-tag">
-                Est. Arrival: <strong>08:24 AM</strong> (6m Safe Slack)
-              </div>
-            </div>
-
-            <!-- Mini Elevation Profile SVG Chart -->
-            <div class="elevation-mini-chart">
-              <div class="chart-label">
-                <span>Elevation &amp; Slope Profile</span>
-                <span class="chart-slope-val">Max: -11.4% / +7.8% Grade</span>
-              </div>
-              <svg viewBox="0 0 320 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="elevation-svg">
-                <path d="M0 8 Q40 28 80 30 T160 20 T240 25 T320 6" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
-                <path d="M0 8 Q40 28 80 30 T160 20 T240 25 T320 6 L320 34 L0 34 Z" fill="url(#elevGradA)" opacity="0.25"/>
-                <!-- Milestone dots -->
-                <circle cx="80" cy="30" r="3.5" fill="#38bdf8"/>
-                <text x="82" y="24" fill="#38bdf8" font-size="8" font-family="monospace">-11.4%</text>
-                <circle cx="240" cy="25" r="3.5" fill="#f59e0b"/>
-                <text x="242" y="20" fill="#f59e0b" font-size="8" font-family="monospace">+7.8%</text>
-                <circle cx="320" cy="6" r="3.5" fill="#a855f7"/>
-                <defs>
-                  <linearGradient id="elevGradA" x1="0" y1="0" x2="0" y2="34" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#38bdf8"/>
-                    <stop offset="1" stop-color="transparent"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            <div class="route-steps-flow">
-              <div class="route-step-item">
-                <span class="step-icon">🚲</span>
-                <span class="step-desc">Geumho Hill descent at <strong>38 km/h</strong> downhill gravity boost (5m)</span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🔒</span>
-                <span class="step-desc">Singeumho Station smart dock with <strong>45s fast lock-up</strong></span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🚇</span>
-                <span class="step-desc"><strong>Direct Line 6 ➔ Line 2</strong> transfer pass (8m ride)</span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🏃</span>
-                <span class="step-desc">Gangnam Stn exit ➔ Unsignalized crosswalk sprint at <strong>4'30"/km</strong> (5m)</span>
-              </div>
-            </div>
-
-            <div class="route-card-footer">
-              <span>Stamina: Moderate-High (450m sprint buffer)</span>
-              <span class="footer-highlight">⚡ Zero-Signal Delay Bypass Active</span>
+    <!-- =========================================================
+         장면 1 (Scene 1): 출발 전 — 목적지 & 오늘 내 컨디션에 맞는 경로 선택
+         ========================================================= -->
+    <main id="scenePlan" class="scene-container active">
+      <!-- 1. 목적지 & 도착 목표 요약 바 -->
+      <section class="trip-summary-bar">
+        <div class="trip-route-endpoints">
+          <div class="endpoint-item">
+            <span class="endpoint-dot start"></span>
+            <div>
+              <span class="endpoint-label">출발지</span>
+              <strong class="endpoint-name">옥수동 자택</strong>
             </div>
           </div>
-
-          <!-- Card 2: Route B (Safest Zero-Risk) -->
-          <div id="cardSafest" class="strategy-card">
-            <div id="routeSafeCard" class="card-inner-anchor"></div>
-            <div class="card-badge-row">
-              <span class="badge-tag badge-safe">🛡️ Route B: Safest Zero-Risk</span>
-              <span class="prob-metric">Late Risk 0.0%</span>
-            </div>
-            
-            <div class="time-hero-row">
-              <div class="time-hero">
-                <span id="etaSafeValue">22m 40s</span>
-                <span class="time-diff" style="color:var(--text-muted);">Saves 10 mins vs standard map</span>
-              </div>
-              <div class="arrival-tag">
-                Est. Arrival: <strong>08:27 AM</strong> (3m Safe Slack)
-              </div>
-            </div>
-
-            <!-- Mini Elevation Profile SVG Chart -->
-            <div class="elevation-mini-chart">
-              <div class="chart-label">
-                <span>Elevation &amp; Slope Profile</span>
-                <span class="chart-slope-val">Gentle: Max -5.2% Grade</span>
-              </div>
-              <svg viewBox="0 0 320 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="elevation-svg">
-                <path d="M0 14 Q60 22 120 22 T220 18 T320 12" stroke="#10b981" stroke-width="2" fill="none"/>
-                <path d="M0 14 Q60 22 120 22 T220 18 T320 12 L320 34 L0 34 Z" fill="url(#elevGradB)" opacity="0.2"/>
-                <circle cx="120" cy="22" r="3" fill="#10b981"/>
-                <circle cx="320" cy="12" r="3" fill="#10b981"/>
-                <defs>
-                  <linearGradient id="elevGradB" x1="0" y1="0" x2="0" y2="34" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#10b981"/>
-                    <stop offset="1" stop-color="transparent"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            <div class="route-steps-flow">
-              <div class="route-step-item">
-                <span class="step-icon">🚲</span>
-                <span class="step-desc">Geumho gentle cruise at <strong>24 km/h</strong> (6m 30s)</span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🔒</span>
-                <span class="step-desc">Singeumho Station safe lock-up (1m)</span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🚇</span>
-                <span class="step-desc"><strong>Direct Subway Express</strong> boarding (9m)</span>
-              </div>
-              <div class="route-step-item">
-                <span class="step-icon">🚶</span>
-                <span class="step-desc">Gangnam Stn exit comfortable walk at <strong>5.8 km/h</strong> (6m 10s)</span>
-              </div>
-            </div>
-
-            <div class="route-card-footer">
-              <span>Stamina: Minimum (Zero sweat / work ready)</span>
-              <span class="footer-highlight" style="color:var(--accent-cyan);">🛡️ Risk Buffer: +3m 20s slack</span>
+          <div class="endpoint-arrow">➔</div>
+          <div class="endpoint-item">
+            <span class="endpoint-dot end"></span>
+            <div>
+              <span class="endpoint-label">목적지</span>
+              <strong class="endpoint-name" id="destNameDisplay">성수·강남 오피스 (3.8km)</strong>
             </div>
           </div>
         </div>
-
-        <!-- Live Minetti Biomechanics & GAP Telemetry Readout -->
-        <div class="physics-telemetry-panel">
-          <div class="physics-panel-header">
-            <span class="physics-title">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-              </svg>
-              Minetti Equation C<sub>w</sub>(i) &amp; Grade-Adjusted Pace (GAP)
-            </span>
-            <span class="physics-status">DETERMINISTIC PHYSICS GATE</span>
-          </div>
-          <div class="physics-metrics-grid">
-            <div class="physics-tile">
-              <div class="physics-label">Slope Grade</div>
-              <div id="telemetrySlope" class="physics-val text-amber">-11.4% / +7.8%</div>
-            </div>
-            <div class="physics-tile">
-              <div class="physics-label">Metabolic Cost C<sub>w</sub>(i)</div>
-              <div id="telemetryCw" class="physics-val text-cyan">4.82 J/kg/m <span class="val-sub">(flat: 3.6)</span></div>
-            </div>
-            <div class="physics-tile">
-              <div class="physics-label">Grade-Adjusted Pace</div>
-              <div id="telemetryGap" class="physics-val text-emerald">5'12" /km <span class="val-sub">(Flat Eqv)</span></div>
-            </div>
-            <div class="physics-tile">
-              <div class="physics-label">Transit Catch Cutoff</div>
-              <div id="telemetryMargin" class="physics-val text-cyan">+42s SAFE <span class="val-sub">(T-180s)</span></div>
-            </div>
-          </div>
+        <div class="trip-target-time">
+          <span class="target-label">도착 목표 시각</span>
+          <strong class="target-clock">오전 08:30까지 (남은 시간 26분)</strong>
         </div>
-
-        <!-- Live Gemini Reasoning Trace Stream -->
-        <div class="reasoning-stream-box">
-          <div class="reasoning-header">
-            <div class="reasoning-title-group">
-              <span class="reasoning-badge">GEMINI 2.5 / 3.0</span>
-              <span class="reasoning-title">Live Epistemic Reasoning Trace</span>
-            </div>
-            <span id="reasoningStatusBadge" class="reasoning-status-tag">TRACE READY</span>
-          </div>
-          <div class="reasoning-steps-list">
-            <div id="reasonStep1" class="reason-step-card active">
-              <div class="step-num-badge">1/3</div>
-              <div class="step-content">
-                <strong>Biometric Telemetry:</strong>
-                <span id="traceStep1Text">Wear OS HR 168 bpm · Grade +7.8% Uphill · Metabolic Cost 4.82 J/kg/m · Pace dropping to 6'25"/km</span>
-              </div>
-            </div>
-            <div id="reasonStep2" class="reason-step-card">
-              <div class="step-num-badge">2/3</div>
-              <div class="step-content">
-                <strong>Epistemic Gate Check:</strong>
-                <span id="traceStep2Text">Bus 146 arriving in 3m (Freshness: 14s &lt; 60s TTL OK) · Intersection Signal: 110s Red</span>
-              </div>
-            </div>
-            <div id="reasonStep3" class="reason-step-card">
-              <div class="step-num-badge">3/3</div>
-              <div class="step-content">
-                <strong>Gemini Action:</strong>
-                <span id="traceStep3Text">Dynamic Voice Reroute Triggered ➔ Reroute right 40m to board approaching Bus 146 (-88s saved)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mobile/Sync Dispatch Button -->
-        <button id="btnSendToAndroid" class="btn-send-android">
-          <span>📱 Dispatch Strategy to Android &amp; Galaxy Buds Voice Guidance ➔</span>
-        </button>
       </section>
 
-      <!-- Right Column: Large Interactive GIS Map, Floating Scenario Dock & Android Telemetry Frame -->
-      <section class="android-pane">
-        <div class="cockpit-map-card">
-          
-          <!-- Top Floating Scenario Trigger Dock (Instant Click for Judges!) -->
-          <div class="scenario-trigger-dock">
-            <div class="dock-header">
-              <span class="dock-title">🎯 INTERACTIVE SCENARIO DOCK</span>
-              <span class="dock-hint">Click any scenario to trigger live physics reroute &amp; audio directive</span>
-            </div>
-            <div class="dock-buttons-row sim-controls">
-              <button id="btnSimTiredBus" class="dock-btn btn-highlight sim-btn" title="Scenario A: Fatigue on uphill triggers dynamic transit catch">
-                <span class="btn-icon">🔥</span>
-                <span class="btn-txt"><strong>Scenario A</strong>: Uphill Fatigue ➔ Bus 146 (3m)</span>
-              </button>
-              <button id="btnSimCrosswalk" class="dock-btn sim-btn" title="Scenario B: 110s Red light blocked triggers right crosswalk bypass">
-                <span class="btn-icon">🚦</span>
-                <span class="btn-txt"><strong>Scenario B</strong>: 110s Red Light ➔ Bypass (-88s)</span>
-              </button>
-              <button id="btnSimSubway" class="dock-btn sim-btn" title="Scenario C: Line 3 delay switches to Line 6 direct topology">
-                <span class="btn-icon">🚇</span>
-                <span class="btn-txt"><strong>Scenario C</strong>: Direct Subway Switch</span>
-              </button>
-              <button id="btnSimStaleGate" class="sim-btn sim-btn-stale dock-btn btn-danger" title="Scenario D: 61s Stale telemetry triggers fail-closed deterministic halt">
-                🛡️ Scenario D: 61s Stale Telemetry ➔ Fail-Closed Gate
-              </button>
-              <button id="btnSimBike" class="dock-btn sim-btn" title="Scenario E: Downhill bike sprint -11.4% grade and 45s smart lock">
-                <span class="btn-icon">🚲</span>
-                <span class="btn-txt"><strong>Scenario E</strong>: 38km/h Downhill Bike</span>
-              </button>
-              <button id="btnSimNormal" class="dock-btn btn-reset sim-btn" title="Reset simulation to optimal 4'30 pace">
-                <span class="btn-icon">⚡</span>
-                <span class="btn-txt">Reset to Optimal Pace</span>
-              </button>
-            </div>
+      <!-- 2. 오늘 어떤 상태/방식으로 이동할까요? -->
+      <section class="condition-picker-card">
+        <div class="section-head">
+          <h2>오늘 어떻게 이동할까요?</h2>
+          <p>오늘 컨디션과 이동 수단을 고르면, 언덕 경사와 신호등 대기를 계산해 가장 알맞은 경로를 추천합니다.</p>
+        </div>
 
-            <!-- Aliases for automated test IDs -->
-            <div style="display:none;" aria-hidden="true">
-              <button id="btnSimFatigue" class="sim-btn">Scenario A: Fatigue</button>
-              <button id="btnSimSignal" class="sim-btn">Scenario B: Signal</button>
-              <button id="btnSimReset" class="sim-btn">Reset</button>
+        <div class="mode-chips-grid">
+          <button class="onboard-chip active" data-preset="hybrid" type="button">
+            <span class="mode-icon">⚡</span>
+            <div class="mode-text">
+              <strong>러닝 + 버스 복합 (추천)</strong>
+              <span>뛰다가 지치면 바로 앞 버스·지하철로 환승</span>
             </div>
+          </button>
+
+          <button class="onboard-chip" data-preset="runner" type="button">
+            <span class="mode-icon">🏃</span>
+            <div class="mode-text">
+              <strong>러닝 완주 (페이스 4'30")</strong>
+              <span>신호등 대기가 가장 적은 논스톱 러닝 루트</span>
+            </div>
+          </button>
+
+          <button class="onboard-chip" data-preset="bike" type="button">
+            <span class="mode-icon">🚲</span>
+            <div class="mode-text">
+              <strong>따릉이 · 자전거</strong>
+              <span>내리막 활주 + 출구 앞 45초 즉시 반납 거치소</span>
+            </div>
+          </button>
+
+          <button class="onboard-chip" data-preset="safe" type="button">
+            <span class="mode-icon">🛡️</span>
+            <div class="mode-text">
+              <strong>땀 안 나는 평지 · 안전 도보</strong>
+              <span>오르막을 피하고 넓고 완만한 큰길로 이동</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- AI 코치의 한 줄 추천 이유 -->
+        <div class="coach-brief-banner">
+          <span class="coach-avatar">🎧</span>
+          <p id="buddyDialogue" class="coach-brief-text">
+            <strong>AI 코치:</strong> "오늘은 08:30까지 26분 남았네요! 처음엔 가볍게 뛰다가 오르막에서 힘들어지면 301번 버스로 갈아타는 <strong>추천 경로 A(17분 45초)</strong>가 가장 여유롭습니다."
+          </p>
+        </div>
+      </section>
+
+      <!-- 3. 추천 경로 2개 비교 & 출발 버튼 -->
+      <section class="route-cards-grid">
+        <!-- 경로 A: 최단 시간 돌파 -->
+        <article id="routeCardA" class="route-card active-route" data-route="A">
+          <div class="route-card-top">
+            <span class="route-badge primary">가장 빠른 도착 · AI 추천</span>
+            <span class="route-arrival-pill" id="fastArrivalClock">08:24 도착 예정 (6분 여유)</span>
           </div>
 
-          <!-- Simulation Progress Indicator -->
-          <div class="sim-progress-track">
-            <div id="simProgress" class="sim-progress-fill" style="width: 0%;"></div>
+          <h3 class="route-title">경로 A · 최단 시간 돌파 루트</h3>
+          <div class="route-big-time">
+            <strong id="etaFastValue">17분 45초</strong>
+            <span class="route-diff-tag">일반 지도보다 3분 25초 단축</span>
           </div>
 
-          <!-- Interactive SVG Live Map -->
-          <div class="map-viewport">
-            <svg id="androidLiveMap" viewBox="0 0 400 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ul class="route-features">
+            <li>⛰️ <strong>경사도:</strong> 금호고개 오르막(+6.8%) 400m 포함</li>
+            <li>🚦 <strong>신호 대기:</strong> 긴 신호등(110초)을 골목 횡단보도로 우회</li>
+            <li>🚌 <strong>비상 대안:</strong> 지칠 경우 교차로에서 301번 버스 즉시 환승 가능</li>
+          </ul>
+
+          <button class="start-nav-btn primary" data-start-route="A" type="button">
+            🚀 이 경로로 안내 시작하기
+          </button>
+        </article>
+
+        <!-- 경로 B: 평지 & 안전 우선 -->
+        <article id="routeCardB" class="route-card" data-route="B">
+          <div class="route-card-top">
+            <span class="route-badge safe">체력 보호 · 평지 위주</span>
+            <span class="route-arrival-pill" id="safeArrivalClock">08:27 도착 예정 (3분 여유)</span>
+          </div>
+
+          <h3 class="route-title">경로 B · 평지 · 체력 세이브 루트</h3>
+          <div class="route-big-time">
+            <strong id="etaSafeValue">21분 10초</strong>
+            <span class="route-diff-tag safe">땀 거의 안 남 · 심박 안정</span>
+          </div>
+
+          <ul class="route-features">
+            <li>🌿 <strong>경사도:</strong> 전 구간 완만한 평지(+1.2% 이하) 우회</li>
+            <li>🛡️ <strong>안전도:</strong> 무신호 횡단 없이 정식 보도와 횡단보도만 이용</li>
+            <li>💓 <strong>예상 체력:</strong> 호흡이 가쁘지 않은 편안한 페이스 유지</li>
+          </ul>
+
+          <button class="start-nav-btn secondary" data-start-route="B" type="button">
+            🛡️ 평지 안전 경로로 안내 시작하기
+          </button>
+        </article>
+      </section>
+    </main>
+
+    <!-- =========================================================
+         장면 2 (Scene 2): 이동 중 — 실시간 지도 + 음성 코치 + 원탭 경로 변경
+         ========================================================= -->
+    <section id="sceneNav" class="scene-container">
+      <!-- 상단: 달리면서 1초 만에 읽히는 대형 상태 바 -->
+      <div class="live-hud-header">
+        <button id="btnBackToPlan" class="back-btn" type="button">← 경로 다시 고르기</button>
+
+        <div class="hud-big-metrics">
+          <div class="hud-metric-box">
+            <span class="hud-metric-label">도착 예정 시각</span>
+            <strong id="simEtaBadge" class="eta-badge status-green">08:24 도착 예정 (정상)</strong>
+          </div>
+          <div class="hud-metric-divider"></div>
+          <div class="hud-metric-box">
+            <span class="hud-metric-label">현재 페이스 · 이동 상태</span>
+            <strong id="simPaceBadge" class="pace-badge">페이스: 4'30" /km (목표 유지)</strong>
+          </div>
+          <div class="hud-metric-divider"></div>
+          <div class="hud-metric-box">
+            <span class="hud-metric-label">센서 연결 상태</span>
+            <strong id="runnerSpeedBadge" class="sensor-badge">GPS · 심박 정상 연결됨</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- 중앙: 왼쪽 실시간 지도 + 오른쪽 음성 코치 & 원탭 결정 카드 -->
+      <div class="nav-main-grid">
+        <!-- 왼쪽: 깔끔한 실시간 내비게이션 지도 -->
+        <div class="map-card">
+          <div class="map-top-overlay">
+            <span class="map-live-pill"><span class="live-dot"></span> 실시간 경로 안내 중</span>
+            <span class="map-route-legend">
+              <i class="legend-line cyan"></i> 기본 경로
+              <i class="legend-line green"></i> 버스 환승 우회
+              <i class="legend-line amber"></i> 신호등 회피 우회
+            </span>
+          </div>
+
+          <div class="hud-map-container">
+            <svg id="liveRouteMap" class="route-svg" viewBox="0 0 680 340" preserveAspectRatio="xMidYMid meet">
               <defs>
-                <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.035)" stroke-width="1"/>
-                </pattern>
-                <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3.5" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-                <filter id="glowRed" x="-30%" y="-30%" width="160%" height="160%">
+                <linearGradient id="fastGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="100%" stop-color="#818cf8" />
+                </linearGradient>
+                <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
                   <feGaussianBlur stdDeviation="4" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-                <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3.5" result="blur" />
                   <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
               </defs>
 
-              <rect width="400" height="340" fill="url(#gridPattern)" />
-
-              <!-- Urban Road Grid (Dark Slate GIS Layout) -->
-              <!-- Main Boulevard (Vertical) -->
-              <line x1="80" y1="330" x2="80" y2="40" stroke="#182234" stroke-width="26" stroke-linecap="round"/>
-              <line x1="80" y1="330" x2="80" y2="40" stroke="#334155" stroke-width="1.8" stroke-dasharray="8 6"/>
-
-              <!-- Cross Boulevard (Horizontal) -->
-              <line x1="15" y1="170" x2="385" y2="170" stroke="#182234" stroke-width="22" stroke-linecap="round"/>
-              <line x1="15" y1="170" x2="385" y2="170" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 6"/>
-
-              <!-- Detour Cross Street -->
-              <line x1="170" y1="220" x2="170" y2="120" stroke="#1e293b" stroke-width="14" stroke-linecap="round"/>
-              <line x1="290" y1="270" x2="290" y2="70" stroke="#1e293b" stroke-width="16" stroke-linecap="round"/>
-
-              <!-- Red Light Intersection Block (Scenario B) -->
-              <g id="intersectionLightGroup" transform="translate(80, 170)">
-                <circle id="redLightZone" cx="0" cy="0" r="18" fill="rgba(244, 63, 94, 0.28)"/>
-                <circle cx="0" cy="0" r="8" fill="#f43f5e" filter="url(#glowRed)"/>
-                <rect x="14" y="-10" width="82" height="18" rx="4" fill="#1e1722" stroke="#f43f5e" stroke-width="1"/>
-                <text x="55" y="3" text-anchor="middle" fill="#fb7185" font-size="9" font-weight="bold" font-family="monospace">110s RED LIGHT</text>
+              <!-- 도로 배경 그리드 -->
+              <g class="map-roads" stroke="rgba(148, 163, 184, 0.14)" stroke-width="18" fill="none" stroke-linecap="round">
+                <path d="M 60 220 L 260 220 L 440 130 L 610 95" />
+                <path d="M 260 220 L 340 280 L 560 280" />
+                <path d="M 240 100 L 440 280" stroke-width="10" />
               </g>
 
-              <!-- Planned Detour Route: Right Unsignalized Crosswalk (-88s) -->
-              <path id="pathCrosswalkDetour" d="M 80 220 L 170 220 L 170 120 L 80 120 L 80 50" 
-                    stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"
-                    stroke-dasharray="6 4" opacity="0.3"/>
-              <g id="crosswalkLabel" transform="translate(178, 165)">
-                <rect x="-4" y="-9" width="138" height="18" rx="4" fill="#0b1b17" stroke="#10b981" stroke-width="0.8"/>
-                <text x="65" y="3" text-anchor="middle" fill="#34d399" font-size="8.5" font-weight="bold">Unsignalized Crosswalk (-88s)</text>
+              <!-- 기본 경로 (직진 오르막 루트) -->
+              <path id="pathDirectFast" d="M 70 220 L 260 220 L 440 130 L 600 95"
+                    stroke="url(#fastGrad)" stroke-width="6" fill="none" stroke-linecap="round" />
+
+              <!-- 우회 경로 1: 체력 저하 시 우회전 버스 정류장 환승 경로 -->
+              <path id="pathBusReroute" d="M 250 220 Q 290 220 320 275 L 520 275"
+                    stroke="#10b981" stroke-width="6" stroke-dasharray="10 6" fill="none"
+                    stroke-linecap="round" style="opacity: 0; transition: opacity 0.4s ease;" filter="url(#glowFilter)" />
+
+              <!-- 우회 경로 2: 110초 신호등 회피 무신호 횡단보도 우회 -->
+              <path id="pathCrosswalkDetour" d="M 190 220 Q 280 295 390 155"
+                    stroke="#f59e0b" stroke-width="5" stroke-dasharray="8 6" fill="none"
+                    stroke-linecap="round" style="opacity: 0; transition: opacity 0.4s ease;" filter="url(#glowFilter)" />
+
+              <!-- 주요 지점 마커: 출발지 -->
+              <g transform="translate(70, 220)">
+                <circle r="9" fill="#38bdf8" />
+                <text x="0" y="26" text-anchor="middle" fill="#cbd5e1" font-size="12" font-weight="600">옥수 출발</text>
               </g>
 
-              <!-- Dynamic Bus Reroute Path (Scenario A) -->
-              <path id="pathBusReroute" d="M 80 250 L 290 250 L 290 70" 
-                    stroke="#f59e0b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
-                    stroke-dasharray="5 3" opacity="0.25"/>
-
-              <!-- Bus Stop Node (Scenario A) -->
-              <g id="busStopNode" transform="translate(290, 230)">
-                <rect x="-10" y="-10" width="20" height="20" rx="5" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
-                <text x="0" y="4" text-anchor="middle" font-size="11">🚏</text>
-                <rect x="14" y="-8" width="86" height="16" rx="4" fill="#201a11" stroke="#f59e0b" stroke-width="0.8"/>
-                <text x="57" y="3" text-anchor="middle" fill="#fbbf24" font-size="8" font-weight="bold">Bus 146 (3m Catch)</text>
+              <!-- 주요 지점 마커: 오르막 & 110초 신호등 교차로 -->
+              <g id="redLightZone" transform="translate(260, 220)" style="opacity: 0.85;">
+                <circle r="22" fill="rgba(239, 68, 68, 0.18)" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" />
+                <text x="0" y="-28" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="700">🚦 교차로 (신호 110초 / 오르막 +6.8%)</text>
               </g>
 
-              <!-- Real-time Approaching Bus Avatar -->
-              <g id="busAvatar" transform="translate(290, 310)" opacity="0">
-                <rect x="-13" y="-15" width="26" height="30" rx="6" fill="#f59e0b" filter="url(#glowAmber)"/>
-                <text x="0" y="4" text-anchor="middle" font-size="14">🚌</text>
+              <!-- 주요 지점 마커: 301번 버스 정류장 -->
+              <g transform="translate(325, 280)">
+                <rect x="-14" y="-14" width="28" height="28" rx="7" fill="#065f46" stroke="#10b981" stroke-width="2" />
+                <text x="0" y="5" text-anchor="middle" font-size="14">🚏</text>
+                <text x="0" y="28" text-anchor="middle" fill="#6ee7b7" font-size="12" font-weight="700">301번 버스 정류장 (3분 뒤 도착)</text>
               </g>
 
-              <!-- Dynamic Runner Avatar with Sweat & Sprint Trail -->
-              <g id="runnerAvatar" transform="translate(80, 295)">
-                <circle cx="0" cy="0" r="16" fill="rgba(56, 189, 248, 0.25)"/>
-                <circle cx="0" cy="0" r="9" fill="#38bdf8" filter="url(#glowCyan)"/>
-                <text x="0" y="4" text-anchor="middle" font-size="12">🏃</text>
-                
-                <!-- Dynamic Sweat Indicator -->
-                <g id="sweatEffect" opacity="0" transform="translate(10, -12)">
-                  <text font-size="12">💦</text>
-                </g>
+              <!-- 주요 지점 마커: 목적지 오피스 -->
+              <g transform="translate(600, 95)">
+                <circle r="11" fill="#818cf8" stroke="#ffffff" stroke-width="2" />
+                <text x="-10" y="-18" text-anchor="end" fill="#e2e8f0" font-size="13" font-weight="700">🏢 강남·성수 오피스 (08:30 마감)</text>
               </g>
 
-              <!-- Destination Flag -->
-              <g transform="translate(80, 42)">
-                <circle cx="0" cy="0" r="13" fill="#a855f7" filter="url(#glowCyan)"/>
-                <text x="0" y="4" text-anchor="middle" font-size="10">🏁</text>
-                <rect x="16" y="-8" width="94" height="17" rx="4" fill="#1f142b" stroke="#a855f7" stroke-width="1"/>
-                <text x="63" y="3" text-anchor="middle" fill="#c084fc" font-size="8.5" font-weight="bold">Gangnam Stn Line 2</text>
+              <!-- 이동 중인 버스 아이콘 -->
+              <g id="busAvatar" transform="translate(100, 100)" style="opacity: 0; transition: opacity 0.3s;">
+                <rect x="65" y="158" width="76" height="30" rx="8" fill="#10b981" />
+                <text x="103" y="178" text-anchor="middle" fill="#06281e" font-size="12" font-weight="800">🚌 301번</text>
               </g>
 
-              <!-- Stale Gate Halt Alert Overlay (Scenario C) -->
-              <g id="staleHaltOverlay" transform="translate(200, 160)" opacity="0">
-                <rect x="-140" y="-30" width="280" height="60" rx="10" fill="rgba(15, 23, 42, 0.95)" stroke="#ef4444" stroke-width="2"/>
-                <text x="0" y="-8" text-anchor="middle" fill="#f87171" font-size="11" font-weight="900" font-family="monospace">🛑 422 STALE_TELEMETRY_HALT</text>
-                <text x="0" y="12" text-anchor="middle" fill="#cbd5e1" font-size="9">Transit feed 61s &gt; 60s TTL · Sprint Blocked</text>
+              <!-- 이동 중인 사용자(러너) 아이콘 -->
+              <g id="runnerAvatar" transform="translate(0, 0)">
+                <circle cx="70" cy="220" r="14" fill="#0ea5e9" stroke="#ffffff" stroke-width="3" filter="url(#glowFilter)" />
+                <text x="70" y="225" text-anchor="middle" font-size="13">🏃</text>
               </g>
             </svg>
-          </div>
 
-          <!-- HUD Real-time Metrics Bar (with full DOM ID coverage) -->
-          <div class="hud-metrics-bar hud-top-metrics">
-            <div class="hud-tile">
-              <div class="hud-label">Current Pace</div>
-              <div id="hudPace" class="hud-value">4'30"</div>
-              <!-- Legacy ID aliases for automated test suites -->
-              <span id="paceDisplay" style="display:none;">4'30"</span>
-              <span id="simPaceBadge" style="display:none;">4'30"</span>
-            </div>
-            <div class="hud-tile">
-              <div class="hud-label">Time Remaining (ETA)</div>
-              <div id="hudEta" class="hud-value">19:10</div>
-              <span id="etaDisplay" style="display:none;">19:10</span>
-              <span id="simEtaBadge" style="display:none;">19:10</span>
-            </div>
-            <div class="hud-tile">
-              <div class="hud-label">Engine Status</div>
-              <div id="hudStatus" class="hud-value text-emerald">Sprint Optimized</div>
-              <span id="runnerSpeedBadge" style="display:none;">Sprint Optimized</span>
-            </div>
-            <div class="hud-tile">
-              <div class="hud-label">Minetti &amp; Gate</div>
-              <div id="minettiMetricBadge" class="hud-value text-cyan">ENERGY: 1.42x Cw(i) | GATE: 60s PASS</div>
+            <!-- 땀/체력 저하 플로팅 배지 -->
+            <div id="sweatEffect" class="sweat-floating-badge" style="display: none;">
+              💦 페이스 저하 감지! (6'25"/km)
             </div>
           </div>
 
-          <!-- Live Voice Coaching Subtitle & Audio Waveform Banner -->
-          <div id="voiceTranscriptBox" class="voice-transcript-card">
-            <div id="coachTranscript" class="card-inner-anchor"></div>
-            <div class="voice-header-row">
-              <div class="voice-waveform">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <span class="waveform-label">GALAXY BUDS3 PRO · LIVE VOICE DIRECTIVE</span>
-              </div>
-              <span id="voiceBadge" class="voice-state-badge">STANDBY</span>
-            </div>
-            <div id="voiceText" class="voice-text">
-              "Optimal 4'30\" pace maintained. Clear corridor ahead with zero intersection delay."
-            </div>
+          <!-- 진행 바 -->
+          <div class="sim-progress-track">
+            <div id="simProgress" class="sim-progress-fill"></div>
           </div>
-
-          <!-- Epistemic Proof vs Naive LLM Comparison Card -->
-          <div id="epistemicCard" class="epistemic-comparison-box">
-            <div class="epistemic-header">
-              <span class="epistemic-tag">EPISTEMIC VERIFICATION</span>
-              <span class="epistemic-title">Deterministic Gate vs. Naive LLM</span>
-            </div>
-            <div class="epistemic-grid">
-              <div class="epistemic-col col-bad">
-                <div class="col-title">❌ Naive LLM Hallucination</div>
-                <div class="col-body">
-                  "Sprint now to catch the 08:04:30 train!" — <em>Blindly hallucinates a high-injury sprint based on expired (61s+) transit data.</em>
-                </div>
-              </div>
-              <div class="epistemic-col col-good">
-                <div class="col-title">✅ PACELINE Fail-Closed Gate</div>
-                <div class="col-body">
-                  "Telemetry expired (61s &gt; 60s TTL). Halting sprint advice to switch to reliable bicycle corridor."
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </section>
 
-    </main>
+        <!-- 오른쪽: 이어폰 음성 안내 & 원탭 행동 결정 카드 -->
+        <aside class="voice-coach-panel">
+          <div class="voice-card">
+            <div class="voice-card-header">
+              <span class="voice-live-badge">🎧 이어폰 실시간 음성 코칭</span>
+              <span id="scenarioStateTag" class="scenario-state-tag">정상 주행 중</span>
+            </div>
 
-    <!-- Sleek Cockpit Footer -->
-    <footer class="app-footer">
-      <span>PACELINE Urban Mobility Engine · Candidate #5 Conditional Route Freshness Gate · Google AI Hackathon 2026</span>
-    </footer>
+            <!-- 실제 음성 안내 자막 -->
+            <div id="voiceTranscriptBox" class="voice-transcript-box">
+              🔊 "현재 목표 페이스 4분 30초로 순조롭게 이동 중입니다. 08시 24분 도착 예정입니다."
+            </div>
+
+            <!-- 사용자가 이동 중에 바로 누를 수 있는 큰 결정 버튼 -->
+            <div class="user-action-box">
+              <p class="action-prompt-label">지금 바로 선택할 수 있는 행동</p>
+              <div class="action-buttons-stack">
+                <button id="btnAcceptReroute" class="action-choice-btn accept" type="button">
+                  ✅ 추천 우회 경로로 바로 변경하기
+                </button>
+                <button id="btnKeepCurrent" class="action-choice-btn keep" type="button">
+                  🏃 현재 경로 그대로 유지하기
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 이동 중 겪을 수 있는 4가지 실제 상황 체험 버튼 -->
+          <div class="situation-tester-card">
+            <div class="tester-header">
+              <h3>이동 중 돌발 상황 체험하기</h3>
+              <span>출근길에 흔히 겪는 상황을 눌러 AI 코치의 반응을 확인해보세요</span>
+            </div>
+
+            <div class="situation-buttons-grid">
+              <button id="btnSimTiredBus" class="situation-btn active-sim" type="button">
+                <span class="sit-icon">💦</span>
+                <div class="sit-text">
+                  <strong>오르막에서 지쳤을 때</strong>
+                  <span>페이스 급락 → 3분 뒤 도착하는 301번 버스 환승 안내</span>
+                </div>
+              </button>
+
+              <button id="btnSimCrosswalk" class="situation-btn" type="button">
+                <span class="sit-icon">🚦</span>
+                <div class="sit-text">
+                  <strong>110초 빨간불을 만났을 때</strong>
+                  <span>신호 대기 대신 우측 50m 골목 횡단보도 우회 (-88초)</span>
+                </div>
+              </button>
+
+              <button id="btnSimSubway" class="situation-btn" type="button">
+                <span class="sit-icon">🚇</span>
+                <div class="sit-text">
+                  <strong>지하철 환승 지연 발생</strong>
+                  <span>3호선 신호 고장 감지 → 신당역 2호선 직결 환승으로 변경</span>
+                </div>
+              </button>
+
+              <button id="btnSimStaleGate" class="situation-btn warn" type="button">
+                <span class="sit-icon">📡</span>
+                <div class="sit-text">
+                  <strong>GPS·심박 신호가 1분 이상 끊겼을 때</strong>
+                  <span>오래된 센서 데이터 기반 무리한 우회 차단 → 안전 큰길로 고정</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="tester-footer">
+              <button id="btnSimBike" class="mini-sim-btn" type="button">🚲 따릉이 내리막 활주 체험</button>
+              <button id="btnSimReset" class="mini-sim-btn" type="button">🔄 처음 상태로 초기화</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         하단 접이식 서랍 (기본 닫힘): 개발자 & 심사위원용 엔진 계산 근거
+         일반 사용자의 화면은 깔끔하게 유지하고, 필요할 때만 열어볼 수 있음
+         ========================================================= -->
+    <details class="engine-details-drawer">
+      <summary class="engine-drawer-summary">
+        <span>🔬 AI 코치는 어떻게 계산했나요? (생체역학 에너지 수식 & 61초 센서 안전 게이트 상세 보기)</span>
+        <span id="minettiMetricBadge" class="engine-summary-pill">Minetti Cw(+1.5%) = 2.81 J/kg/m · 센서 정상(1.2초)</span>
+      </summary>
+
+      <div class="engine-drawer-body">
+        <div class="engine-trace-grid">
+          <div class="trace-box">
+            <h4>1. 경사도별 체력 소모 계산 (Minetti 생체역학 모델)</h4>
+            <p id="traceStep1" class="trace-mono">
+              [Step 1] 경사도 +1.5% → 에너지 소모 Cw(i) = 2.81 J/kg/m | 심박수 146 bpm | 페이스 4'30"/km
+            </p>
+          </div>
+          <div class="trace-box">
+            <h4>2. 61초 센서 신선도 게이트 & 신호등 대기 확률</h4>
+            <p id="traceStep2" class="trace-mono">
+              [Step 2] 센서 수신 1.2초 전 (≤60초 정상) | 교차로 90초 이상 대기 확률 82% | 버스 환승 컷오프 180초
+            </p>
+          </div>
+          <div class="trace-box">
+            <h4>3. Gemini 2.5 실시간 경로 판단 결과</h4>
+            <p id="traceStep3" class="trace-mono">
+              [Step 3] 최적 빠른 경로 유지 (예상 소요 17분 45초, 일반 지도 대비 210초 단축)
+            </p>
+          </div>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <!-- Connected Client App Logic -->
   <script src="/app.js"></script>
 </body>
 </html>

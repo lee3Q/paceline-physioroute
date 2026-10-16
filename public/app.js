@@ -103,6 +103,155 @@ document.getElementById = function(id) {
     };
   }
 
+  // Minetti et al. (2002) Biomechanical Energy Cost Polynomial:
+  // Cw(i) = 280.5*i^5 - 58.7*i^4 - 76.8*i^3 + 51.9*i^2 + 19.6*i + 2.5 (J/kg/m)
+  function computeMinettiCw(gradientFraction) {
+    const i = gradientFraction;
+    const cw = 280.5 * Math.pow(i, 5)
+             - 58.7 * Math.pow(i, 4)
+             - 76.8 * Math.pow(i, 3)
+             + 51.9 * Math.pow(i, 2)
+             + 19.6 * i
+             + 2.5;
+    return Number(cw.toFixed(2));
+  }
+
+  // Highlight Route Card Helper (Route A vs Safe Route B)
+  function highlightRouteCard(targetRoute) {
+    const routeBSelectors = ['#routeCardB', '#safeRouteCard', '[data-route="B"]', '[data-route="safe"]', '.route-card.safe-route', '.route-card:nth-child(2)'];
+    const routeASelectors = ['#routeCardA', '#fastRouteCard', '[data-route="A"]', '[data-route="fast"]', '.route-card.fast-route', '.route-card:nth-child(1)'];
+
+    const findEl = (selectors) => {
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) return el;
+      }
+      return null;
+    };
+
+    const routeA = findEl(routeASelectors);
+    const routeB = findEl(routeBSelectors);
+
+    if (targetRoute === 'B') {
+      if (routeB) {
+        routeB.classList.add('active-route', 'pulse-glow', 'fail-closed-safe');
+        routeB.style.outline = '2px solid #f59e0b';
+        routeB.style.boxShadow = '0 0 22px rgba(245, 158, 11, 0.45)';
+      }
+      if (routeA) {
+        routeA.classList.remove('active-route', 'pulse-glow');
+        routeA.style.opacity = '0.55';
+        routeA.style.outline = 'none';
+      }
+    } else {
+      if (routeA) {
+        routeA.classList.add('active-route');
+        routeA.style.opacity = '1';
+      }
+      if (routeB) {
+        routeB.classList.remove('fail-closed-safe', 'pulse-glow');
+        routeB.style.outline = '';
+        routeB.style.boxShadow = '';
+      }
+    }
+  }
+
+  // Live Gemini Reasoning Trace & Minetti Cw(i) Updater
+  function updateReasoningTrace(scenarioKey, customMeta = {}) {
+    const step1El = document.getElementById('traceStep1');
+    const step2El = document.getElementById('traceStep2');
+    const step3El = document.getElementById('traceStep3');
+    const minettiBadgeEl = document.getElementById('minettiMetricBadge');
+
+    const traceConfigs = {
+      normal: {
+        gradient: 0.015,
+        hr: 146,
+        gpsAge: 1.2,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Grade +1.5% → Cw(i) = ${computeMinettiCw(0.015)} J/kg/m | HR 146 bpm | Pace 4'30"/km`,
+        step2: `[Step 2 · 61s Epistemic Gate & Signal Stochastics] Telemetry age 1.2s ≤ 60s (GATE: OPEN) | P(wait > 90s) = 0.82 | Transit cutoff = 180s`,
+        step3: `[Step 3 · Gemini Conditional Synthesis] Optimal fast corridor active (ETA 19m 10s, saving 210s vs baseline).`,
+        badge: `Minetti Cw(+1.5%) = ${computeMinettiCw(0.015)} J/kg/m · HR 146 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: false
+      },
+      fatigue: {
+        gradient: 0.068,
+        hr: 184,
+        gpsAge: 1.8,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Grade +6.8% uphill → Cw(i) = ${computeMinettiCw(0.068)} J/kg/m | HR 184 bpm (Lactate spike) | Pace collapsed to 6'25"/km`,
+        step2: `[Step 2 · 61s Epistemic Gate & Signal Stochastics] Telemetry age 1.8s ≤ 60s (GATE: OPEN) | P(wait > 90s) = 0.82 | Bus #301 transit cutoff = 180s (3m 00s)`,
+        step3: `[Step 3 · Gemini Conditional Synthesis] Reroute right at 60m → Catch Bus #301 within 180s cutoff. Recovers ETA to 08:26 AM.`,
+        badge: `Minetti Cw(+6.8%) = ${computeMinettiCw(0.068)} J/kg/m · HR 184 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: false
+      },
+      signal: {
+        gradient: 0.01,
+        hr: 158,
+        gpsAge: 1.1,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Grade +1.0% flat → Cw(i) = ${computeMinettiCw(0.01)} J/kg/m | HR 158 bpm | Sprint speed 14.2 km/h`,
+        step2: `[Step 2 · 61s Epistemic Gate & Signal Stochastics] Junction phase lock: P(wait > 90s) = 0.82 (110s red cycle) | Transit cutoff = 180s | Gate: OPEN (1.1s)`,
+        step3: `[Step 3 · Gemini Conditional Synthesis] Bypass 110s red signal via 50m unsignalized crosswalk detour → Net gain -88s.`,
+        badge: `Minetti Cw(+1.0%) = ${computeMinettiCw(0.01)} J/kg/m · HR 158 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: false
+      },
+      subway: {
+        gradient: 0.02,
+        hr: 152,
+        gpsAge: 2.0,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Grade +2.0% transfer ramp → Cw(i) = ${computeMinettiCw(0.02)} J/kg/m | HR 152 bpm | P(wait > 90s) = 0.82`,
+        step2: `[Step 2 · 61s Epistemic Gate & Transit Cutoff] Line 3 Oksu–Yaksu delay (+540s) > 180s transit cutoff | Telemetry age 2.0s ≤ 60s (GATE: OPEN)`,
+        step3: `[Step 3 · Gemini Conditional Synthesis] Prune Line 3 transfer → Force Line 6 Sindang direct Line 2 transfer (saves 9m 00s).`,
+        badge: `Minetti Cw(+2.0%) = ${computeMinettiCw(0.02)} J/kg/m · HR 152 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: false
+      },
+      bike: {
+        gradient: -0.114,
+        hr: 138,
+        gpsAge: 1.4,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Grade -11.4% downhill → Cw(i) = ${computeMinettiCw(-0.114)} J/kg/m | HR 138 bpm | Downhill 38 km/h`,
+        step2: `[Step 2 · 61s Epistemic Gate & Dock Cutoff] Telemetry age 1.4s ≤ 60s (GATE: OPEN) | P(wait > 90s) = 0.82 | Dock & transit cutoff = 180s (45s dock)`,
+        step3: `[Step 3 · Gemini Conditional Synthesis] Geumho downhill aero glide → Exit 2 instant 45s bike dock → On-time arrival.`,
+        badge: `Minetti Cw(-11.4%) = ${computeMinettiCw(-0.114)} J/kg/m · HR 138 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: false
+      },
+      stale_gate: {
+        gradient: 0.042,
+        hr: 176,
+        gpsAge: 64,
+        step1: `[Step 1 · Biometrics & Minetti Cw(i)] Last known Grade +4.2% → Cw(i) = ${computeMinettiCw(0.042)} J/kg/m | Last HR 176 bpm (UNVERIFIED)`,
+        step2: `⚠️ [Step 2 · 61s EPISTEMIC GATE VIOLATION] gps_age_sec = 64s (> 60s limit) | P(wait > 90s) = 0.82 | Transit cutoff = 180s → GATE: BLOCKED`,
+        step3: `[Step 3 · Fail-Closed Safety Lock] Aggressive sprint/jaywalk reroute ABORTED. Failing closed to Zero-Risk Safe Route B until fresh telemetry lock.`,
+        badge: `⚠️ GATE BLOCKED (64s > 60s) · Cw(+4.2%) = ${computeMinettiCw(0.042)} J/kg/m · HR 176 bpm · P(wait>90s)=0.82 · Cutoff 180s`,
+        flashStep2: true
+      }
+    };
+
+    const cfg = traceConfigs[scenarioKey] || traceConfigs.normal;
+
+    if (step1El) step1El.textContent = customMeta.step1 || cfg.step1;
+    if (step2El) {
+      step2El.textContent = customMeta.step2 || cfg.step2;
+      if (cfg.flashStep2) {
+        step2El.classList.add('status-red', 'blink', 'gate-warning-flash');
+        step2El.style.backgroundColor = 'rgba(239, 68, 68, 0.22)';
+        step2El.style.borderLeft = '4px solid #f59e0b';
+        step2El.style.color = '#fef08a';
+        step2El.style.padding = '6px 10px';
+        step2El.style.borderRadius = '6px';
+      } else {
+        step2El.classList.remove('status-red', 'blink', 'gate-warning-flash');
+        step2El.style.backgroundColor = '';
+        step2El.style.borderLeft = '';
+        step2El.style.color = '';
+      }
+    }
+    if (step3El) step3El.textContent = customMeta.step3 || cfg.step3;
+    if (minettiBadgeEl) {
+      minettiBadgeEl.textContent = customMeta.badge || cfg.badge;
+      minettiBadgeEl.dataset.cw = String(computeMinettiCw(cfg.gradient));
+    }
+  }
+
   // 1. Onboarding Chips & Preset Click Handler
   function initOnboarding() {
     const chips = document.querySelectorAll('.onboard-chip');
@@ -119,28 +268,41 @@ document.getElementById = function(id) {
         const safeEtaEl = document.getElementById('etaSafeValue');
         const runnerSpeedBadge = document.getElementById('runnerSpeedBadge');
 
+        highlightRouteCard('A');
+
         if (presetType === 'runner') {
           if (buddyDialogue) buddyDialogue.textContent = "러너 모드 활성화! Strava 연동 페이스 4'30\"/km 기준, 고도각 5% 미만 평지 최우선 루트를 탐색합니다.";
           if (runnerSpeedBadge) runnerSpeedBadge.textContent = "Strava 러닝 4'30\"/km";
           if (fastEtaEl) fastEtaEl.textContent = "19분 10초";
           if (safeEtaEl) safeEtaEl.textContent = "22분 40초";
+          updateReasoningTrace('normal');
           speak("러너 모드 활성화! 최적 페이스 4분 30초 기준으로 경로를 최적화합니다.");
         } else if (presetType === 'bike' || presetType === 'cyclist') {
           if (buddyDialogue) buddyDialogue.textContent = "따릉이 & 로드바이크 모드! 금호동 내리막(-11.4%) 38km/h 활주 및 최단 거치소(45초) 우선 배정!";
           if (runnerSpeedBadge) runnerSpeedBadge.textContent = "내 자전거 38km/h";
           if (fastEtaEl) fastEtaEl.textContent = "12분 20초";
           if (safeEtaEl) safeEtaEl.textContent = "15분 50초";
+          updateReasoningTrace('bike');
           speak("자전거 모드 활성화! 다운힐 38킬로미터 활주 경로와 정류장 45초 컷 거치대를 안내합니다.");
         } else if (presetType === 'hybrid') {
           if (buddyDialogue) buddyDialogue.textContent = "하이브리드 모드! 달리기 + 버스 환승 + 무신호 횡단보도 실시간 최적 조합 가동 중.";
           if (runnerSpeedBadge) runnerSpeedBadge.textContent = "복합 환승 최적화";
           if (fastEtaEl) fastEtaEl.textContent = "17분 45초";
           if (safeEtaEl) safeEtaEl.textContent = "21분 10초";
+          updateReasoningTrace('normal', {
+            step1: `[Step 1 · Hybrid Biometrics & Minetti Cw(i)] Grade +1.8% → Cw(i) = ${computeMinettiCw(0.018)} J/kg/m | HR 151 bpm | Multi-modal Run+Transit`,
+            badge: `Minetti Cw(+1.8%) = ${computeMinettiCw(0.018)} J/kg/m · HR 151 bpm · P(wait>90s)=0.82 · Cutoff 180s`
+          });
           speak("하이브리드 모드! 뛰다가 버스나 지하철 환승 기회가 생기면 즉시 알립니다.");
         } else {
           if (buddyDialogue) buddyDialogue.textContent = "안전 우선 모드! 경사도 완만, 보행 신호 여유, 밝은 대로변 루트 안내.";
           if (fastEtaEl) fastEtaEl.textContent = "23분 10초";
           if (safeEtaEl) safeEtaEl.textContent = "25분 00초";
+          highlightRouteCard('B');
+          updateReasoningTrace('normal', {
+            step1: `[Step 1 · Safe Mode & Minetti Cw(i)] Flat Grade +0.5% → Cw(i) = ${computeMinettiCw(0.005)} J/kg/m | HR 128 bpm | Zero-risk arterial`,
+            badge: `Minetti Cw(+0.5%) = ${computeMinettiCw(0.005)} J/kg/m · HR 128 bpm · P(wait>90s)=0.82 · Cutoff 180s`
+          });
         }
 
         // Trigger lightweight API update
@@ -176,6 +338,7 @@ document.getElementById = function(id) {
     const redLightZone = document.getElementById('redLightZone');
     const etaBadge = document.getElementById('simEtaBadge');
     const paceBadge = document.getElementById('simPaceBadge');
+    const runnerSpeedBadge = document.getElementById('runnerSpeedBadge');
 
     if (runner) {
       runner.style.transform = 'translate(0px, 0px) rotate(0deg)';
@@ -203,6 +366,12 @@ document.getElementById = function(id) {
       paceBadge.textContent = '페이스: 4\'30" /km';
       paceBadge.className = 'pace-badge';
     }
+    if (runnerSpeedBadge && runnerSpeedBadge.textContent.includes('BLOCKED')) {
+      runnerSpeedBadge.textContent = 'GATE: OPEN (1.2s FRESH)';
+      runnerSpeedBadge.classList.remove('status-red', 'blink');
+    }
+    highlightRouteCard('A');
+    updateReasoningTrace('normal');
   }
 
   // 🔥 DEMO ANIMATION 1: playTiredBusRerouteAnimation()
@@ -211,6 +380,8 @@ document.getElementById = function(id) {
   // Phase 3 (4.0s~): Voice coaching + Green right-turn route to bus stop, bus arrives in 3 min, ETA recovers to 08:26 safe!
   window.playTiredBusRerouteAnimation = function() {
     resetSimVisuals();
+    updateReasoningTrace('fatigue');
+    evaluateRoute({ scenario: 'fatigue', gradient: 0.068, hr_bpm: 184, gps_age_sec: 1.8 });
     state.animating = true;
 
     const runner = document.getElementById('runnerAvatar');
@@ -336,6 +507,8 @@ document.getElementById = function(id) {
   // 🔥 DEMO ANIMATION 2: Crosswalk 110s Red Light Detour
   window.playCrosswalkDetourAnimation = function() {
     resetSimVisuals();
+    updateReasoningTrace('signal');
+    evaluateRoute({ scenario: 'signal', p_wait_gt_90s: 0.82, gps_age_sec: 1.1 });
     state.animating = true;
 
     const runner = document.getElementById('runnerAvatar');
@@ -387,6 +560,8 @@ document.getElementById = function(id) {
   // 🔥 DEMO ANIMATION 3: Subway Delay Reroute
   window.playSubwayRerouteAnimation = function() {
     resetSimVisuals();
+    updateReasoningTrace('subway');
+    evaluateRoute({ scenario: 'subway', transit_cutoff_sec: 180, gps_age_sec: 2.0 });
     const etaBadge = document.getElementById('simEtaBadge') || document.getElementById('etaDisplay');
     const paceBadge = document.getElementById('simPaceBadge') || document.getElementById('paceDisplay');
 
@@ -405,6 +580,8 @@ document.getElementById = function(id) {
   // 🔥 DEMO ANIMATION 4: Downhill Bike Sprint (-11.4% gradient)
   window.playBikeSprintAnimation = function() {
     resetSimVisuals();
+    updateReasoningTrace('bike');
+    evaluateRoute({ scenario: 'bike', gradient: -0.114, gps_age_sec: 1.4 });
     state.animating = true;
 
     const runner = document.getElementById('runnerAvatar');
@@ -446,13 +623,84 @@ document.getElementById = function(id) {
     state.currentAnimationId = requestAnimationFrame(step);
   };
 
+  // 🔥 DEMO SCENARIO D: 61s Fail-Closed Epistemic Telemetry Gate
+  window.playStaleGateSimulation = async function() {
+    cancelCurrentAnimation();
+    const staleMsg = "⚠️ [61s Epistemic Gate Triggered] GPS & Heart-Rate telemetry is 64s stale (>60s limit). Blocking aggressive jaywalk/sprint rerouting and failing closed to Safe Route B until fresh lock is restored.";
+
+    // Update Reasoning Trace & flash #traceStep2 in warning red/amber
+    updateReasoningTrace('stale_gate');
+
+    // Switch HUD into FAIL-CLOSED SAFETY LOCK
+    const etaBadge = document.getElementById('simEtaBadge') || document.getElementById('etaDisplay');
+    const paceBadge = document.getElementById('simPaceBadge') || document.getElementById('paceDisplay');
+    const runnerSpeedBadge = document.getElementById('runnerSpeedBadge');
+    const coachTranscriptEl = _origGetById('coachTranscript') || document.getElementById('coachTranscript');
+    const coachQuoteEl = _origGetById('coachQuote') || document.getElementById('coachQuote');
+    const buddyDialogueEl = _origGetById('buddyDialogue') || document.getElementById('buddyDialogue');
+
+    if (paceBadge) {
+      paceBadge.textContent = 'GATE: BLOCKED — 64s STALE TELEMETRY';
+      paceBadge.className = 'pace-badge status-red blink';
+    }
+    if (etaBadge) {
+      etaBadge.textContent = '🔒 FAIL-CLOSED SAFETY LOCK → Safe Route B (22분 40초)';
+      etaBadge.className = 'eta-badge status-orange pulse';
+    }
+    if (runnerSpeedBadge) {
+      runnerSpeedBadge.textContent = 'GATE: BLOCKED — 64s STALE TELEMETRY';
+      runnerSpeedBadge.classList.add('status-red', 'blink');
+    }
+
+    // Speak and explicitly set #coachTranscript & #coachQuote
+    speak(staleMsg);
+    if (coachTranscriptEl) {
+      coachTranscriptEl.textContent = staleMsg;
+      coachTranscriptEl.classList.remove('hidden');
+      coachTranscriptEl.classList.add('pulse-glow');
+    }
+    if (coachQuoteEl) coachQuoteEl.textContent = staleMsg;
+    if (buddyDialogueEl) buddyDialogueEl.textContent = staleMsg;
+
+    // Highlight Route B (Safest Zero-Risk Route)
+    highlightRouteCard('B');
+
+    // Call POST /api/evaluate with gps_age_sec: 64 (> 60s threshold)
+    await evaluateRoute({
+      scenario: 'stale_gate',
+      gps_age_sec: 64,
+      hr_age_sec: 64,
+      threshold_sec: 60,
+      fail_closed: true
+    });
+  };
+
+  // Unified Scenario Dispatcher: window.triggerScenario(name)
+  window.triggerScenario = function(scenarioName) {
+    const key = String(scenarioName || 'normal').toLowerCase();
+    if (key === 'stale_gate' || key === 'stale' || key === 'gate') {
+      return window.playStaleGateSimulation();
+    } else if (key === 'fatigue' || key === 'tired' || key === 'bus') {
+      return window.playTiredBusRerouteAnimation();
+    } else if (key === 'signal' || key === 'crosswalk') {
+      return window.playCrosswalkDetourAnimation();
+    } else if (key === 'subway') {
+      return window.playSubwayRerouteAnimation();
+    } else if (key === 'bike' || key === 'cyclist') {
+      return window.playBikeSprintAnimation();
+    } else {
+      resetSimVisuals();
+      return evaluateRoute({ scenario: 'normal', gps_age_sec: 1.2 });
+    }
+  };
+
   // Attach button triggers
   function initSimulationTriggers() {
     const btnTired = document.getElementById('btnSimTiredBus') || document.getElementById('btnSendToAndroid');
     if (btnTired) {
       btnTired.addEventListener('click', (e) => {
         e.preventDefault();
-        window.playTiredBusRerouteAnimation();
+        window.triggerScenario('fatigue');
       });
     }
 
@@ -460,7 +708,7 @@ document.getElementById = function(id) {
     if (btnCrosswalk) {
       btnCrosswalk.addEventListener('click', (e) => {
         e.preventDefault();
-        window.playCrosswalkDetourAnimation();
+        window.triggerScenario('signal');
       });
     }
 
@@ -468,7 +716,7 @@ document.getElementById = function(id) {
     if (btnSubway) {
       btnSubway.addEventListener('click', (e) => {
         e.preventDefault();
-        window.playSubwayRerouteAnimation();
+        window.triggerScenario('subway');
       });
     }
 
@@ -476,7 +724,15 @@ document.getElementById = function(id) {
     if (btnBike) {
       btnBike.addEventListener('click', (e) => {
         e.preventDefault();
-        window.playBikeSprintAnimation();
+        window.triggerScenario('bike');
+      });
+    }
+
+    const btnStaleGate = document.getElementById('btnSimStaleGate');
+    if (btnStaleGate) {
+      btnStaleGate.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.triggerScenario('stale_gate');
       });
     }
 
@@ -484,7 +740,7 @@ document.getElementById = function(id) {
     if (btnReset) {
       btnReset.addEventListener('click', (e) => {
         e.preventDefault();
-        resetSimVisuals();
+        window.triggerScenario('normal');
       });
     }
   }
@@ -493,7 +749,8 @@ document.getElementById = function(id) {
   document.addEventListener('DOMContentLoaded', () => {
     initOnboarding();
     initSimulationTriggers();
-    console.log('[PACELINE 5B Engine] Initialized successfully.');
+    updateReasoningTrace('normal');
+    console.log('[PACELINE 5B Engine] Initialized successfully with 61s Epistemic Gate & Minetti Cw(i) trace.');
   });
 
 })();

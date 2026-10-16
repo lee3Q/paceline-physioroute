@@ -1,9 +1,31 @@
 {
-  "name": "run-or-miss-conditional-commute-gate",
+  "name": "@paceline/core",
   "version": "1.0.0",
-  "private": true,
+  "description": "PACELINE (PhysioRoute) — Biometric & Micro-Obstacle Urban Navigation Engine with 61s Epistemic Freshness Gate",
+  "license": "MIT",
   "type": "module",
-  "description": "Candidate 5: Run-or-Miss — Conditional Multimodal Commute & Stale-Data Fail-Closed Gate (seed_f1602f353109 + seed_c04d407ebfaf)",
+  "main": "src/server.js",
+  "exports": {
+    ".": "./src/server.js",
+    "./core/physio": "./src/physio.js",
+    "./core/engine": "./src/engine.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanggyulee/paceline-physioroute.git"
+  },
+  "keywords": [
+    "paceline",
+    "physioroute",
+    "biometrics",
+    "navigation",
+    "micro-obstacle",
+    "multimodal-transit",
+    "minetti-energy-cost",
+    "epistemic-gate",
+    "gemini",
+    "real-time-routing"
+  ],
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/server.test.js"

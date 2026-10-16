@@ -362,7 +362,7 @@ export function createApp({
 
 export function startServer({
   port = Number(process.env.PORT) || 8085,
-  host = '127.0.0.1',
+  host = '0.0.0.0',
   env = process.env,
   fetchImpl = globalThis.fetch
 } = {}) {
@@ -379,7 +379,7 @@ export function startServer({
 // Run directly when invoked via `node src/server.js`
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 8085;
-  const host = process.env.HOST || '127.0.0.1';
+  const host = process.env.HOST || '0.0.0.0';
   startServer({ port, host })
     .then((srv) => {
       const addr = srv.address();
